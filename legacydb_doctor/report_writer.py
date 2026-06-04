@@ -263,6 +263,65 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         ]
     )
 
+    data_quality_rows = []
+
+    for table in tables:
+        for column in table.columns:
+            if column.fill_rate_percent is None:
+                continue
+
+            if column.fill_rate_percent == 0:
+                issue = "Completely empty column"
+                severity = "High"
+                suggested_action = "Review if this column is still needed before migration."
+            elif column.fill_rate_percent < 10:
+                issue = "Almost empty column"
+                severity = "Medium"
+                suggested_action = "Review business meaning. Consider excluding or documenting this column."
+            elif column.fill_rate_percent < 50:
+                issue = "Low fill rate"
+                severity = "Low"
+                suggested_action = "Review whether low fill rate is expected."
+            else:
+                continue
+
+            data_quality_rows.append(
+                {
+                    "Severity": severity,
+                    "Table": table.table_name,
+                    "Column": column.column_name,
+                    "Recommended MySQL Table": suggest_mysql_identifier(table.table_name),
+                    "Recommended MySQL Column": suggest_mysql_identifier(column.column_name),
+                    "Rows": table.row_count,
+                    "Empty Values": column.empty_count,
+                    "Filled Values": column.filled_count,
+                    "Fill Rate %": column.fill_rate_percent,
+                    "Issue": issue,
+                    "Suggested Action": suggested_action,
+                }
+            )
+
+    data_quality_df = pd.DataFrame(data_quality_rows)
+
+    if data_quality_df.empty:
+        data_quality_df = pd.DataFrame(
+            [
+                {
+                    "Severity": "info",
+                    "Table": None,
+                    "Column": None,
+                    "Recommended MySQL Table": None,
+                    "Recommended MySQL Column": None,
+                    "Rows": None,
+                    "Empty Values": None,
+                    "Filled Values": None,
+                    "Fill Rate %": None,
+                    "Issue": "No low-fill columns detected.",
+                    "Suggested Action": None,
+                }
+            ]
+        )
+
     type_mapping_df = columns_df[["Access/ODBC Type", "Suggested MySQL Type"]].drop_duplicates() if not columns_df.empty else pd.DataFrame(columns=["Access/ODBC Type", "Suggested MySQL Type"])
 
     warnings_df = pd.DataFrame(
@@ -285,6 +344,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
         "Cleanup Candidates": cleanup_candidates_df,
+        "Data Quality": data_quality_df,
         "Columns": columns_df,
         "Type Mapping": type_mapping_df,
         "Warnings": warnings_df,
