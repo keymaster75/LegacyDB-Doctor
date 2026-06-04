@@ -1,122 +1,394 @@
 # LegacyDB Doctor
 
-**Access to MySQL Migration Readiness & Validation Toolkit**
+**LegacyDB Doctor** is a practical migration-readiness toolkit for legacy Microsoft Access databases.
 
-LegacyDB Doctor is a practical Python toolkit for analyzing legacy Microsoft Access databases before migrating them to MySQL or MariaDB.
+It helps developers, IT managers, consultants, and small organizations inspect old `.mdb` / `.accdb` databases before migrating them to **MySQL** or **MariaDB**.
 
-The first goal is not to blindly migrate everything. The goal is to inspect the database, detect migration risks, generate a clear report, and prepare a safer path toward MySQL/MariaDB.
+The project focuses on real-world legacy database problems:
 
-## What it does in this starter version
+- old Microsoft Access databases used by business applications
+- Delphi / VB / Access applications with unclear database structure
+- missing or unreliable primary key metadata
+- Access import error tables and backup/copy tables
+- inconsistent table and column names
+- empty or low-fill columns
+- Access-to-MySQL type mapping
+- migration planning before any destructive change
 
-The starter version provides a CLI command that can:
+LegacyDB Doctor does **not** try to blindly convert everything in one click.  
+Its first goal is safer and more transparent migration planning.
 
-- read table names from an Access `.mdb` or `.accdb` database via ODBC,
-- inspect columns and Access/ODBC data types,
-- count rows per table,
-- map common Access/ODBC types to MySQL-friendly types,
-- generate an Excel migration-readiness report,
-- generate a basic MySQL `schema.sql` file.
+---
 
-## Project status
+## Current Features
 
-Early private/starter version.
+LegacyDB Doctor can currently:
 
-Planned features:
+- scan Microsoft Access `.mdb` / `.accdb` databases through ODBC
+- list user tables and columns
+- count rows per table
+- map Access/ODBC column types to suggested MySQL types
+- detect suspicious Access table names
+- detect import error / copy / backup / temp / test tables
+- suggest MySQL-safe table and column names
+- detect primary key status using:
+  - formal primary key metadata
+  - unique index metadata
+  - candidate key heuristics
+- generate an Excel migration-readiness report
+- generate a MySQL `schema.sql`
+- optionally generate schema using normalized MySQL-safe identifiers
+- warn about tables without primary key or unique index
+- profile column fill rates
+- create a migration plan sheet
+- create cleanup and data-quality sheets
 
-- primary key detection,
-- duplicate detection,
-- empty-column detection,
-- data-quality profiling,
-- direct MySQL import,
-- post-migration validation,
-- HTML report,
-- sample demo Access database.
+---
 
-## Requirements
+## Report Sheets
 
-- Windows is recommended for Access ODBC support.
-- Python 3.10+
-- Microsoft Access Database Engine / ODBC driver installed.
+The generated Excel report currently includes:
 
-For `.mdb` / `.accdb` files, the required Windows ODBC driver is usually named something like:
+| Sheet | Purpose |
+|---|---|
+| `Summary` | Overall database metrics and primary key status counts |
+| `Migration Plan` | Recommended action per table: migrate, review, or exclude |
+| `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
+| `Primary Keys` | Primary key / unique index / candidate status per table |
+| `Cleanup Candidates` | Tables that should be reviewed before migration |
+| `Data Quality` | Columns with low fill rate or completely empty values |
+| `Columns` | Full column inventory with Access types, MySQL types, fill-rate profiling |
+| `Type Mapping` | Access/ODBC type to suggested MySQL type mapping |
+| `Warnings` | Detailed warnings and informational notes |
+
+---
+
+## Example Summary
+
+Example terminal output:
 
 ```text
-Microsoft Access Driver (*.mdb, *.accdb)
+Scan summary
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Metric          ┃ Value ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ Tables          │    35 │
+│ Columns         │   248 │
+│ Rows            │ 23340 │
+│ Warnings        │    42 │
+│ Info            │   249 │
+│ Total notes     │   291 │
+│ PK formal       │     0 │
+│ PK unique_index │    17 │
+│ PK candidate    │     0 │
+│ PK none         │    18 │
+└─────────────────┴───────┘
 ```
 
-## Quick start on Windows
+---
 
-Create and activate virtual environment:
+## Installation
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/keymaster75/LegacyDB-Doctor.git
+cd LegacyDB-Doctor
+```
+
+If your project is inside a nested folder after extracting a ZIP, enter the actual project folder that contains:
+
+```text
+pyproject.toml
+requirements.txt
+legacydb_doctor/
+tests/
+```
+
+---
+
+### 2. Create and activate a virtual environment
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+---
+
+### 3. Install dependencies
 
 ```powershell
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install -e .
 ```
 
-Run help:
+For tests:
 
 ```powershell
-python -m legacydb_doctor --help
+python -m pip install pytest
 ```
 
-Scan an Access database:
+---
+
+## Requirements
+
+LegacyDB Doctor currently requires:
+
+- Python 3.11+ recommended
+- Windows for Access ODBC scanning
+- Microsoft Access ODBC driver:
+  - `Microsoft Access Driver (*.mdb, *.accdb)`
+- Python packages:
+  - `pyodbc`
+  - `pandas`
+  - `openpyxl`
+  - `typer`
+  - `rich`
+
+To check installed ODBC drivers:
 
 ```powershell
-python -m legacydb_doctor scan "C:\path\to\database.mdb" --out "report.xlsx" --schema-out "schema.sql"
+python -m legacydb_doctor drivers
 ```
 
-## Example output files
-
-After scanning, the tool can create:
+You should see something like:
 
 ```text
-report.xlsx
+Microsoft Access Driver (*.mdb, *.accdb)
+```
+
+---
+
+## Usage
+
+### Basic scan
+
+```powershell
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema.sql"
+```
+
+This creates:
+
+```text
+legacydb_report.xlsx
 schema.sql
 ```
 
-The Excel report contains sheets for:
+The SQL schema will use the original Access table and column names.
 
-- Summary
-- Tables
-- Columns
-- Type Mapping
-- Warnings
+---
 
-## GitHub setup
-
-If this folder is opened locally and you already created a GitHub repository, connect it like this:
+### Generate schema using recommended MySQL-safe identifiers
 
 ```powershell
-git init
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema_recommended.sql" --use-recommended-names
+```
+
+Example transformation:
+
+```text
+Copy Of Naslov      -> copy_of_naslov
+Clan$_ImportErrors  -> clan_import_errors
+InventarniBroj      -> inventarni_broj
+DatumPro            -> datum_pro
+```
+
+---
+
+## Generated SQL
+
+LegacyDB Doctor can generate a starter MySQL schema.
+
+Example with recommended names:
+
+```sql
+-- Generated by LegacyDB Doctor
+-- Review this schema before running it in production.
+-- Identifier mode: recommended MySQL names
+SET NAMES utf8mb4;
+
+CREATE TABLE `autor` (
+  `sif_a` INT AUTO_INCREMENT NOT NULL,
+  `ime` VARCHAR(60) NULL,
+  UNIQUE KEY `uk_autor_sif_a` (`sif_a`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+For tables without a primary key or unique index, the generated SQL includes a warning comment before the table:
+
+```sql
+-- Warning: no primary key or unique index detected for table `problem`
+CREATE TABLE `problem` (
+  `sif_problem` INT NULL,
+  `opis` TEXT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+---
+
+## Primary Key Detection
+
+Access databases may not always expose formal primary key metadata correctly through ODBC.
+
+LegacyDB Doctor therefore distinguishes between:
+
+| Status | Meaning |
+|---|---|
+| `formal` | Formal primary key detected through ODBC metadata |
+| `unique_index` | Unique index detected; may represent the real primary key |
+| `candidate` | Possible key guessed from column names/types |
+| `none` | No key or obvious candidate detected |
+
+The tool is intentionally conservative.  
+It does not pretend that a unique index is always a formal primary key.
+
+---
+
+## Cleanup Candidate Detection
+
+LegacyDB Doctor flags tables that may need review before migration, such as:
+
+- Access import error tables
+- backup/copy tables
+- temporary tables
+- test tables
+- old/stale tables
+- empty tables
+- tables without primary keys
+
+Examples:
+
+```text
+Clan$_ImportErrors
+Copy Of Naslov
+Copy Of Clan pre dodavanja 1 razreda
+```
+
+Cleanup priority levels:
+
+| Priority | Meaning |
+|---|---|
+| `High` | Likely import/copy/temp/test/backup table |
+| `Medium` | Structural concern, such as missing primary key |
+| `Low` | Informational concern, such as empty but valid-looking table |
+
+Empty tables are not automatically treated as bad.  
+They are marked for review because some valid application/domain tables may simply have no rows yet.
+
+---
+
+## Data Quality Checks
+
+The `Data Quality` sheet highlights columns with low fill rates:
+
+| Severity | Condition |
+|---|---|
+| `High` | Completely empty column |
+| `Medium` | Less than 10% filled |
+| `Low` | Less than 50% filled |
+
+This helps identify columns that may be obsolete, rarely used, or require business explanation before migration.
+
+---
+
+## Project Structure
+
+```text
+legacydb-doctor/
+  README.md
+  LICENSE
+  pyproject.toml
+  requirements.txt
+  legacydb_doctor/
+    __init__.py
+    __main__.py
+    cli.py
+    access_reader.py
+    models.py
+    mysql_mapper.py
+    report_writer.py
+    sql_writer.py
+  tests/
+  examples/
+  docs/
+```
+
+---
+
+## Development Workflow
+
+Run tests:
+
+```powershell
+python -m pytest
+```
+
+Run scan on a test Access database:
+
+```powershell
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema.sql"
+```
+
+Run scan with normalized MySQL identifiers:
+
+```powershell
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema_recommended.sql" --use-recommended-names
+```
+
+Commit typical change:
+
+```powershell
 git add .
-git commit -m "Initial LegacyDB Doctor starter project"
-git branch -M main
-git remote add origin https://github.com/keymaster75/LegacyDB-Doctor.git
-git push -u origin main
+git commit -m "Describe the change"
+git push origin main
 ```
 
-If the remote repository already contains files, use:
+---
 
-```powershell
-git pull origin main --allow-unrelated-histories
-```
+## Roadmap
 
-then resolve any conflicts if Git asks.
+Planned or possible future features:
 
-## Suggested positioning
+- export Access data to CSV
+- generate MySQL import scripts
+- direct Access-to-MySQL data migration
+- duplicate value detection for candidate key columns
+- reserved MySQL keyword detection
+- relationship / foreign key discovery
+- improved Access index analysis
+- report severity summary
+- HTML report output
+- sample demo Access database
+- GUI version
+- migration checklist documentation
 
-LegacyDB Doctor is intended for IT managers, developers, and small organizations maintaining old Access, Delphi, VB, or office-based business applications.
+---
 
-It helps answer a practical question before migration:
+## Project Philosophy
 
-> Is this database ready to be migrated safely?
+LegacyDB Doctor is built around one principle:
+
+> Before migrating a legacy database, first understand what is really inside it.
+
+Old Access databases often contain valuable business data, but also years of accumulated artifacts: copy tables, import errors, empty structures, unclear keys, inconsistent names, and undocumented assumptions.
+
+This tool is meant to support careful, auditable, step-by-step modernization.
+
+---
 
 ## License
 
-MIT License. See `LICENSE`.
+This project is intended to be open source.
+
+A license file should be added before public release.  
+Recommended license: MIT License.
+
+---
+
+## Status
+
+Early development / prototype.
+
+The current version is useful for migration-readiness analysis, but generated SQL should always be reviewed before production use.
