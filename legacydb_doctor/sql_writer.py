@@ -10,6 +10,18 @@ def mysql_identifier(name: str) -> str:
     """Quote a MySQL identifier with backticks."""
     return "`" + name.replace("`", "``") + "`"
 
+def resolve_identifier(name: str, use_recommended_names: bool) -> str:
+    return suggest_mysql_identifier(name) if use_recommended_names else name
+
+
+def make_key_name(prefix: str, table_name: str, columns: list[str], use_recommended_names: bool) -> str:
+    resolved_table = suggest_mysql_identifier(table_name)
+    resolved_columns = [suggest_mysql_identifier(column) for column in columns]
+    raw_name = "_".join([prefix, resolved_table, *resolved_columns])
+    key_name = suggest_mysql_identifier(raw_name)
+
+    # MySQL index names are limited to 64 characters.
+    return key_name[:64]
 
 def create_schema_sql(tables: list[TableInfo], use_recommended_names: bool = False) -> str:
     chunks: list[str] = [
@@ -21,16 +33,35 @@ def create_schema_sql(tables: list[TableInfo], use_recommended_names: bool = Fal
     ]
 
     for table in tables:
-        table_name = suggest_mysql_identifier(table.table_name) if use_recommended_names else table.table_name
+        table_name = resolve_identifier(table.table_name, use_recommended_names)
 
         chunks.append(f"CREATE TABLE {mysql_identifier(table_name)} (")
         column_lines: list[str] = []
 
         for column in table.columns:
-            column_name = suggest_mysql_identifier(column.column_name) if use_recommended_names else column.column_name
+            column_name = resolve_identifier(column.column_name, use_recommended_names)
             null_sql = "NULL" if column.nullable else "NOT NULL"
             mysql_type = column.mysql_type or "TEXT"
             column_lines.append(f"  {mysql_identifier(column_name)} {mysql_type} {null_sql}")
+
+        resolved_pk_columns = [
+            mysql_identifier(resolve_identifier(column_name, use_recommended_names))
+            for column_name in table.primary_keys
+        ]
+
+        if resolved_pk_columns and table.primary_key_source == "formal":
+            column_lines.append(f"  PRIMARY KEY ({', '.join(resolved_pk_columns)})")
+
+        elif resolved_pk_columns and table.primary_key_source == "unique_index":
+            key_name = make_key_name("uk", table.table_name, table.primary_keys, use_recommended_names)
+            column_lines.append(
+                f"  UNIQUE KEY {mysql_identifier(key_name)} ({', '.join(resolved_pk_columns)})"
+            )
+
+        elif resolved_pk_columns and table.primary_key_source == "candidate":
+            column_lines.append(
+                f"  -- Possible primary key candidate: {', '.join(resolved_pk_columns)}"
+            )
 
         if column_lines:
             chunks.append(",\n".join(column_lines))
