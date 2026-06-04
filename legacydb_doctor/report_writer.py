@@ -7,7 +7,7 @@ from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
 from .models import TableInfo, WarningInfo
-
+from .access_reader import suggest_mysql_identifier
 
 def _autosize_worksheet(ws) -> None:
     for column_cells in ws.columns:
@@ -60,6 +60,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         [
             {
                 "Table": table.table_name,
+                "Recommended MySQL Table": suggest_mysql_identifier(table.table_name),
                 "Rows": table.row_count,
                 "Columns": len(table.columns),
                 "Primary Key Status": table.primary_key_source,
@@ -226,6 +227,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         migration_plan_rows.append(
             {
                 "Table": table.table_name,
+                "Recommended MySQL Table": suggest_mysql_identifier(table.table_name),
                 "Recommendation": recommendation,
                 "Rows": table.row_count,
                 "Columns": len(table.columns),
@@ -242,7 +244,9 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         [
             {
                 "Table": column.table_name,
+                "Recommended MySQL Table": suggest_mysql_identifier(column.table_name),
                 "Column": column.column_name,
+                "Recommended MySQL Column": suggest_mysql_identifier(column.column_name),
                 "Ordinal": column.ordinal_position,
                 "Access/ODBC Type": column.type_name,
                 "ODBC Data Type": column.data_type,
