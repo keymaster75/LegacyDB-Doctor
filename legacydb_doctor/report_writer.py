@@ -91,6 +91,67 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         ]
     )
 
+    cleanup_rows = []
+
+    for table in tables:
+        reasons = []
+
+        table_name_lower = table.table_name.lower()
+
+        if table.row_count == 0:
+            reasons.append("Empty table")
+
+        if table.primary_key_source == "none":
+            reasons.append("No primary key detected")
+
+        if "importerrors" in table_name_lower or "import errors" in table_name_lower:
+            reasons.append("Access import error table")
+
+        if "copy of" in table_name_lower or "copy2 of" in table_name_lower or "kopija" in table_name_lower:
+            reasons.append("Backup/copy table")
+
+        if "backup" in table_name_lower or "_bak" in table_name_lower or " bak" in table_name_lower:
+            reasons.append("Backup table")
+
+        if "temp" in table_name_lower or "tmp" in table_name_lower:
+            reasons.append("Temporary table")
+
+        if "test" in table_name_lower:
+            reasons.append("Test table")
+
+        if "staro" in table_name_lower or "old" in table_name_lower:
+            reasons.append("Old/legacy copy table")
+
+        if reasons:
+            cleanup_rows.append(
+                {
+                    "Table": table.table_name,
+                    "Rows": table.row_count,
+                    "Columns": len(table.columns),
+                    "PK Status": table.primary_key_source,
+                    "Reasons": "; ".join(reasons),
+                    "Suggested Action": (
+                        "Review before migration. Exclude if this is not a production table."
+                    ),
+                }
+            )
+
+    cleanup_candidates_df = pd.DataFrame(cleanup_rows)
+
+    if cleanup_candidates_df.empty:
+        cleanup_candidates_df = pd.DataFrame(
+            [
+                {
+                    "Table": None,
+                    "Rows": None,
+                    "Columns": None,
+                    "PK Status": None,
+                    "Reasons": "No cleanup candidates detected.",
+                    "Suggested Action": None,
+                }
+            ]
+        )
+
     columns_df = pd.DataFrame(
         [
             {
@@ -129,6 +190,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         "Summary": summary_df,
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
+        "Cleanup Candidates": cleanup_candidates_df,
         "Columns": columns_df,
         "Type Mapping": type_mapping_df,
         "Warnings": warnings_df,
