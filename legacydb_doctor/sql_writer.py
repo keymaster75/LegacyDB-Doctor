@@ -35,6 +35,11 @@ def create_schema_sql(tables: list[TableInfo], use_recommended_names: bool = Fal
     for table in tables:
         table_name = resolve_identifier(table.table_name, use_recommended_names)
 
+        if table.primary_key_source == "none":
+            chunks.append(
+                f"-- Warning: no primary key or unique index detected for table {mysql_identifier(table_name)}"
+            )
+
         chunks.append(f"CREATE TABLE {mysql_identifier(table_name)} (")
         column_lines: list[str] = []
 
@@ -63,10 +68,7 @@ def create_schema_sql(tables: list[TableInfo], use_recommended_names: bool = Fal
                 f"  -- Possible primary key candidate: {', '.join(resolved_pk_columns)}"
             )
 
-        elif table.primary_key_source == "none":
-            column_lines.append(
-                "  -- Warning: no primary key or unique index detected for this table"
-            )
+
 
         if column_lines:
             chunks.append(",\n".join(column_lines))
