@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
+import re
+import unicodedata
+
 import pyodbc
 
 from .models import ColumnInfo, TableInfo, WarningInfo
@@ -43,13 +46,41 @@ def iter_user_tables(cursor: pyodbc.Cursor) -> Iterable[str]:
             continue
         yield table_name
 
+def suggest_mysql_identifier(name: str) -> str:
+    """
+    Convert an Access table/column name to a conservative MySQL-friendly identifier.
+
+    Examples:
+    - "Copy Of Naslov" -> "copy_of_naslov"
+    - "Clan$_ImportErrors" -> "clan_importerrors"
+    - "Šifra Člana" -> "sifra_clana"
+    """
+    value = unicodedata.normalize("NFKD", name)
+    value = value.encode("ascii", "ignore").decode("ascii")
+    value = value.lower().strip()
+
+    value = re.sub(r"[^a-z0-9_]+", "_", value)
+    value = re.sub(r"_+", "_", value)
+    value = value.strip("_")
+
+    if not value:
+        value = "unnamed_identifier"
+
+    if value[0].isdigit():
+        value = f"t_{value}"
+
+    return value
+
 def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
     normalized = table_name.lower().strip()
+    suggested_name = suggest_mysql_identifier(table_name)
 
     suspicious_patterns = [
         ("importerrors", "Table looks like an Access import error table."),
         ("import errors", "Table looks like an Access import error table."),
         ("copy of", "Table looks like a backup/copy table."),
+        ("copy2 of", "Table looks like a backup/copy table."),
+        ("kopija", "Table looks like a backup/copy table."),
         ("backup", "Table looks like a backup table."),
         ("_bak", "Table looks like a backup table."),
         (" bak", "Table looks like a backup table."),
@@ -66,23 +97,28 @@ def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
                 level="warning",
                 table_name=table_name,
                 column_name=None,
-                message=message,
+                message=f"{message} Suggested MySQL name: `{suggested_name}`.",
             )
 
-    if " " in table_name:
+    if suggested_name != table_name.lower():
         return WarningInfo(
             level="info",
             table_name=table_name,
             column_name=None,
-            message="Table name contains spaces. Consider renaming it before MySQL migration.",
+            message=f"Table name may need normalization for MySQL. Suggested name: `{suggested_name}`.",
         )
 
-    if "$" in table_name:
+    return None
+
+def detect_suspicious_column_name(table_name: str, column_name: str) -> WarningInfo | None:
+    suggested_name = suggest_mysql_identifier(column_name)
+
+    if suggested_name != column_name.lower():
         return WarningInfo(
             level="info",
             table_name=table_name,
-            column_name=None,
-            message="Table name contains '$'. This is often created by Access imports/exports.",
+            column_name=column_name,
+            message=f"Column name may need normalization for MySQL. Suggested name: `{suggested_name}`.",
         )
 
     return None
@@ -169,6 +205,11 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                         message="No columns detected for this table.",
                     )
                 )
+
+            for column in columns:
+                column_warning = detect_suspicious_column_name(table_name, column.column_name)
+                if column_warning:
+                    warnings.append(column_warning)
 
             tables.append(TableInfo(table_name=table_name, row_count=row_count, columns=columns))
 
