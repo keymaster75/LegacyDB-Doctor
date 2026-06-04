@@ -128,13 +128,60 @@ def detect_suspicious_column_name(table_name: str, column_name: str) -> WarningI
 
     return None
 
+def access_identifier(name: str) -> str:
+    """Quote an Access identifier with square brackets."""
+    return "[" + name.replace("]", "]]") + "]"
+
 def count_rows(cursor: pyodbc.Cursor, table_name: str) -> int | None:
     try:
-        safe_name = table_name.replace("]", "]]" )
-        row = cursor.execute(f"SELECT COUNT(*) FROM [{safe_name}]").fetchone()
+        row = cursor.execute(f"SELECT COUNT(*) FROM {access_identifier(table_name)}").fetchone()
         return int(row[0]) if row else None
     except pyodbc.Error:
         return None
+
+def is_text_column(column: ColumnInfo) -> bool:
+    type_name = (column.type_name or "").lower()
+    return any(marker in type_name for marker in ["char", "text", "memo", "varchar", "longchar"])
+
+
+def count_empty_values(cursor: pyodbc.Cursor, table_name: str, column: ColumnInfo) -> int | None:
+    try:
+        table_sql = access_identifier(table_name)
+        column_sql = access_identifier(column.column_name)
+
+        if is_text_column(column):
+            row = cursor.execute(
+                f"SELECT COUNT(*) FROM {table_sql} WHERE {column_sql} IS NULL OR {column_sql} = ''"
+            ).fetchone()
+        else:
+            row = cursor.execute(
+                f"SELECT COUNT(*) FROM {table_sql} WHERE {column_sql} IS NULL"
+            ).fetchone()
+
+        return int(row[0]) if row else None
+
+    except pyodbc.Error:
+        return None
+
+
+def profile_columns(conn: pyodbc.Connection, table_name: str, row_count: int | None, columns: list[ColumnInfo]) -> None:
+    if row_count is None:
+        return
+
+    for column in columns:
+        profile_cursor = conn.cursor()
+        empty_count = count_empty_values(profile_cursor, table_name, column)
+        profile_cursor.close()
+
+        if empty_count is None:
+            continue
+
+        filled_count = max(row_count - empty_count, 0)
+        fill_rate_percent = round((filled_count / row_count) * 100, 2) if row_count > 0 else 0.0
+
+        column.empty_count = empty_count
+        column.filled_count = filled_count
+        column.fill_rate_percent = fill_rate_percent
 
 def get_primary_key_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]:
     primary_keys: list[str] = []
@@ -263,6 +310,8 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
             column_cursor = conn.cursor()
             columns = get_columns(column_cursor, table_name)
             column_cursor.close()
+
+            profile_columns(conn, table_name, row_count, columns)
 
             if not primary_keys:
                 index_cursor = conn.cursor()

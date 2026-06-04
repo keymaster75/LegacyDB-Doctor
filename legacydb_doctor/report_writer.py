@@ -253,6 +253,9 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
                 "Size": column.column_size,
                 "Decimal Digits": column.decimal_digits,
                 "Nullable": column.nullable,
+                "Empty Values": column.empty_count,
+                "Filled Values": column.filled_count,
+                "Fill Rate %": column.fill_rate_percent,
                 "Suggested MySQL Type": column.mysql_type,
             }
             for table in tables

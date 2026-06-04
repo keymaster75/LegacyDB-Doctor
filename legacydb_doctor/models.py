@@ -13,6 +13,9 @@ class ColumnInfo:
     decimal_digits: int | None
     nullable: bool | None
     mysql_type: str | None = None
+    empty_count: int | None = None
+    filled_count: int | None = None
+    fill_rate_percent: float | None = None
 
 
 @dataclass
