@@ -53,12 +53,17 @@ def suggest_mysql_identifier(name: str) -> str:
     Examples:
     - "Copy Of Naslov" -> "copy_of_naslov"
     - "Clan$_ImportErrors" -> "clan_importerrors"
+    - "InventarniBroj" -> "inventarni_broj"
     - "Šifra Člana" -> "sifra_clana"
     """
     value = unicodedata.normalize("NFKD", name)
     value = value.encode("ascii", "ignore").decode("ascii")
-    value = value.lower().strip()
 
+    # Split CamelCase / PascalCase before lowercasing.
+    # Example: InventarniBroj -> Inventarni_Broj
+    value = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", value)
+
+    value = value.lower().strip()
     value = re.sub(r"[^a-z0-9_]+", "_", value)
     value = re.sub(r"_+", "_", value)
     value = value.strip("_")
