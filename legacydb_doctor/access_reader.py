@@ -136,6 +136,18 @@ def count_rows(cursor: pyodbc.Cursor, table_name: str) -> int | None:
     except pyodbc.Error:
         return None
 
+def get_primary_key_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]:
+    primary_keys: list[str] = []
+
+    try:
+        for row in cursor.primaryKeys(table=table_name):
+            column_name = getattr(row, "column_name", None)
+            if column_name:
+                primary_keys.append(column_name)
+    except pyodbc.Error:
+        return []
+
+    return primary_keys
 
 def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
     columns: list[ColumnInfo] = []
@@ -186,6 +198,20 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
             row_cursor = conn.cursor()
             row_count = count_rows(row_cursor, table_name)
             row_cursor.close()
+
+            pk_cursor = conn.cursor()
+            primary_keys = get_primary_key_columns(pk_cursor, table_name)
+            pk_cursor.close()
+
+            if not primary_keys:
+                warnings.append(
+                    WarningInfo(
+                        level="warning",
+                        table_name=table_name,
+                        column_name=None,
+                        message="No primary key detected. This table may be risky to migrate or synchronize.",
+                    )
+                )
 
             if row_count is None:
                 warnings.append(
