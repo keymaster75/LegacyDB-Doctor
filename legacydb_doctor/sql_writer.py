@@ -63,6 +63,11 @@ def create_schema_sql(tables: list[TableInfo], use_recommended_names: bool = Fal
                 f"  -- Possible primary key candidate: {', '.join(resolved_pk_columns)}"
             )
 
+        elif table.primary_key_source == "none":
+            column_lines.append(
+                "  -- Warning: no primary key or unique index detected for this table"
+            )
+
         if column_lines:
             chunks.append(",\n".join(column_lines))
         else:
