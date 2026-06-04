@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# PyCharm
+.idea/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Reports / generated files
+*.xlsx
+*.xls
+*.sql
+*.log
+
+# Local databases - do not commit real client/company data
+*.mdb
+*.accdb
+*.sqlite
+*.db
+
+# OS
+Thumbs.db
+.DS_Store

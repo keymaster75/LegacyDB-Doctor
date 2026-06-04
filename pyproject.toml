@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legacydb-doctor"
+version = "0.1.0"
+description = "Access to MySQL migration readiness and validation toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Aleksandar Aleksic" }
+]
+license = { text = "MIT" }
+dependencies = [
+  "typer>=0.12.0",
+  "rich>=13.0.0",
+  "pyodbc>=5.0.0",
+  "pandas>=2.0.0",
+  "openpyxl>=3.1.0"
+]
+
+[project.scripts]
+legacydb-doctor = "legacydb_doctor.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["legacydb_doctor*"]

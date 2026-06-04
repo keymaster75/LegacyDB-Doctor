@@ -1,0 +1,8 @@
+# Future direct MySQL migration config example
+mysql:
+  host: localhost
+  port: 3306
+  database: legacydb_test
+  user: root
+  password: change_me
+  charset: utf8mb4
