@@ -123,16 +123,37 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
             reasons.append("Old/legacy copy table")
 
         if reasons:
+            high_risk_keywords = [
+                "Access import error table",
+                "Backup/copy table",
+                "Backup table",
+                "Temporary table",
+                "Test table",
+                "Old/legacy copy table",
+            ]
+
+            if any(reason in high_risk_keywords for reason in reasons):
+                cleanup_priority = "High"
+                suggested_action = "Review before migration. Exclude if this is not a production table."
+            elif "No primary key detected" in reasons:
+                cleanup_priority = "Medium"
+                suggested_action = "Review table structure before migration. Consider adding or confirming a primary key."
+            elif reasons == ["Empty table"]:
+                cleanup_priority = "Low"
+                suggested_action = "Table is empty. Keep it if it is a valid application/domain table."
+            else:
+                cleanup_priority = "Low"
+                suggested_action = "Review before migration."
+
             cleanup_rows.append(
                 {
                     "Table": table.table_name,
                     "Rows": table.row_count,
                     "Columns": len(table.columns),
                     "PK Status": table.primary_key_source,
+                    "Cleanup Priority": cleanup_priority,
                     "Reasons": "; ".join(reasons),
-                    "Suggested Action": (
-                        "Review before migration. Exclude if this is not a production table."
-                    ),
+                    "Suggested Action": suggested_action,
                 }
             )
 
@@ -146,6 +167,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
                     "Rows": None,
                     "Columns": None,
                     "PK Status": None,
+                    "Cleanup Priority": None,
                     "Reasons": "No cleanup candidates detected.",
                     "Suggested Action": None,
                 }
