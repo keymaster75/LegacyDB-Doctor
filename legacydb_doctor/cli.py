@@ -21,7 +21,6 @@ def main() -> None:
 
 
 @app.command()
-@app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     out: Path = typer.Option(Path("legacydb_report.xlsx"), "--out", "-o", help="Excel report output path"),
@@ -48,6 +47,11 @@ def scan(
     if schema_out is not None:
         schema_path = write_schema_sql(tables, schema_out, use_recommended_names=use_recommended_names)
         console.print(f"[green]Schema SQL created:[/green] {schema_path}")
+
+        if use_recommended_names:
+            console.print("[cyan]Schema uses recommended MySQL-safe identifiers.[/cyan]")
+        else:
+            console.print("[cyan]Schema uses original Access identifiers.[/cyan]")
 
     summary = Table(title="Scan summary")
     summary.add_column("Metric")
