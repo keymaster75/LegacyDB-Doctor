@@ -242,7 +242,14 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                 if column_warning:
                     warnings.append(column_warning)
 
-            tables.append(TableInfo(table_name=table_name, row_count=row_count, columns=columns))
+            tables.append(
+                TableInfo(
+                    table_name=table_name,
+                    row_count=row_count,
+                    columns=columns,
+                    primary_keys=primary_keys,
+                )
+            )
 
         return tables, warnings
 

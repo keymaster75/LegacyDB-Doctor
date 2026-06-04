@@ -53,6 +53,8 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
                 "Table": table.table_name,
                 "Rows": table.row_count,
                 "Columns": len(table.columns),
+                "Primary Key Detected": "Yes" if table.primary_keys else "No",
+                "Primary Key Columns": ", ".join(table.primary_keys),
             }
             for table in tables
         ]

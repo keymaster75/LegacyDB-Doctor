@@ -20,6 +20,7 @@ class TableInfo:
     table_name: str
     row_count: int | None = None
     columns: list[ColumnInfo] = field(default_factory=list)
+    primary_keys: list[str] = field(default_factory=list)
 
 
 @dataclass
