@@ -142,12 +142,57 @@ def get_primary_key_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]
     try:
         for row in cursor.primaryKeys(table=table_name):
             column_name = getattr(row, "column_name", None)
-            if column_name:
+            if column_name and column_name not in primary_keys:
                 primary_keys.append(column_name)
     except pyodbc.Error:
         return []
 
     return primary_keys
+
+def get_unique_index_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]:
+    unique_columns: list[str] = []
+
+    try:
+        for row in cursor.statistics(table=table_name, unique=True):
+            column_name = getattr(row, "column_name", None)
+            index_name = getattr(row, "index_name", "") or ""
+
+            if not column_name:
+                continue
+
+            # Skip Access statistics rows that do not describe real columns.
+            if column_name not in unique_columns and not index_name.startswith("{"):
+                unique_columns.append(column_name)
+
+    except pyodbc.Error:
+        return []
+
+    return unique_columns
+
+def guess_primary_key_candidates(columns: list[ColumnInfo]) -> list[str]:
+    candidates: list[str] = []
+
+    for column in columns:
+        column_name = column.column_name or ""
+        normalized_name = column_name.lower()
+        type_name = (column.type_name or "").lower()
+
+        # Access AutoNumber is often exposed as COUNTER or AutoNumber-like type.
+        if "counter" in type_name or "autoincrement" in type_name or "auto increment" in type_name:
+            candidates.append(column_name)
+            continue
+
+        # Common ID naming.
+        if normalized_name in {"id", "pk", "key"}:
+            candidates.append(column_name)
+            continue
+
+        # Common Serbian/legacy naming pattern: SifA, SifN, SifC...
+        if normalized_name.startswith("sif") and len(normalized_name) <= 8:
+            candidates.append(column_name)
+            continue
+
+    return candidates
 
 def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
     columns: list[ColumnInfo] = []
@@ -203,15 +248,7 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
             primary_keys = get_primary_key_columns(pk_cursor, table_name)
             pk_cursor.close()
 
-            if not primary_keys:
-                warnings.append(
-                    WarningInfo(
-                        level="warning",
-                        table_name=table_name,
-                        column_name=None,
-                        message="No primary key detected. This table may be risky to migrate or synchronize.",
-                    )
-                )
+            primary_key_source = "formal" if primary_keys else "none"
 
             if row_count is None:
                 warnings.append(
@@ -226,6 +263,39 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
             column_cursor = conn.cursor()
             columns = get_columns(column_cursor, table_name)
             column_cursor.close()
+
+            if not primary_keys:
+                index_cursor = conn.cursor()
+                unique_index_columns = get_unique_index_columns(index_cursor, table_name)
+                index_cursor.close()
+
+                if unique_index_columns:
+                    primary_keys = unique_index_columns
+                    primary_key_source = "unique_index"
+
+            if not primary_keys:
+                guessed_candidates = guess_primary_key_candidates(columns)
+
+                if guessed_candidates:
+                    primary_keys = guessed_candidates
+                    primary_key_source = "candidate"
+                    warnings.append(
+                        WarningInfo(
+                            level="info",
+                            table_name=table_name,
+                            column_name=None,
+                            message=f"No formal primary key detected, but possible candidate column(s) found: {', '.join(guessed_candidates)}.",
+                        )
+                    )
+                else:
+                    warnings.append(
+                        WarningInfo(
+                            level="warning",
+                            table_name=table_name,
+                            column_name=None,
+                            message="No primary key or obvious candidate detected. This table may be risky to migrate or synchronize.",
+                        )
+                    )
 
             if not columns:
                 warnings.append(
@@ -248,6 +318,7 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                     row_count=row_count,
                     columns=columns,
                     primary_keys=primary_keys,
+                    primary_key_source=primary_key_source,
                 )
             )
 
