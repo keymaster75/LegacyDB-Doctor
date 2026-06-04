@@ -21,11 +21,17 @@ def main() -> None:
 
 
 @app.command()
+@app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     out: Path = typer.Option(Path("legacydb_report.xlsx"), "--out", "-o", help="Excel report output path"),
     schema_out: Optional[Path] = typer.Option(Path("schema.sql"), "--schema-out", help="Generated MySQL schema output path. Use empty value to skip."),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
+    use_recommended_names: bool = typer.Option(
+        False,
+        "--use-recommended-names",
+        help="Use normalized MySQL-safe table and column names in generated schema.sql.",
+    ),
 ) -> None:
     """Scan an Access database and generate migration-readiness outputs."""
     console.print(f"[bold]LegacyDB Doctor[/bold] scanning: {database}")
@@ -40,7 +46,7 @@ def scan(
     console.print(f"[green]Excel report created:[/green] {report_path}")
 
     if schema_out is not None:
-        schema_path = write_schema_sql(tables, schema_out)
+        schema_path = write_schema_sql(tables, schema_out, use_recommended_names=use_recommended_names)
         console.print(f"[green]Schema SQL created:[/green] {schema_path}")
 
     summary = Table(title="Scan summary")
