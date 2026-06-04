@@ -174,6 +174,70 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
             ]
         )
 
+    migration_plan_rows = []
+
+    for table in tables:
+        table_name_lower = table.table_name.lower()
+        reasons = []
+
+        is_import_error = "importerrors" in table_name_lower or "import errors" in table_name_lower
+        is_copy_table = (
+            "copy of" in table_name_lower
+            or "copy2 of" in table_name_lower
+            or "kopija" in table_name_lower
+        )
+        is_backup_table = "backup" in table_name_lower or "_bak" in table_name_lower or " bak" in table_name_lower
+        is_temp_table = "temp" in table_name_lower or "tmp" in table_name_lower
+        is_test_table = "test" in table_name_lower
+        is_old_table = "staro" in table_name_lower or "old" in table_name_lower
+        is_empty = table.row_count == 0
+        has_no_pk = table.primary_key_source == "none"
+
+        if is_import_error:
+            reasons.append("Access import error table")
+        if is_copy_table:
+            reasons.append("Backup/copy table")
+        if is_backup_table:
+            reasons.append("Backup table")
+        if is_temp_table:
+            reasons.append("Temporary table")
+        if is_test_table:
+            reasons.append("Test table")
+        if is_old_table:
+            reasons.append("Old/legacy copy table")
+        if is_empty:
+            reasons.append("Empty table")
+        if has_no_pk:
+            reasons.append("No primary key detected")
+
+        if is_import_error or is_copy_table or is_backup_table or is_temp_table or is_test_table or is_old_table:
+            recommendation = "Exclude by default"
+            action = "Exclude from migration unless confirmed as a real production table."
+        elif is_empty:
+            recommendation = "Review"
+            action = "Review with application owner. Keep if this is a valid empty domain/application table."
+        elif has_no_pk:
+            recommendation = "Review before migration"
+            action = "Review table structure and consider adding or confirming a primary key."
+        else:
+            recommendation = "Migrate"
+            action = "Table looks suitable for migration based on current checks."
+
+        migration_plan_rows.append(
+            {
+                "Table": table.table_name,
+                "Recommendation": recommendation,
+                "Rows": table.row_count,
+                "Columns": len(table.columns),
+                "PK Status": table.primary_key_source,
+                "PK Columns": ", ".join(table.primary_keys),
+                "Reasons": "; ".join(reasons) if reasons else "No major issue detected",
+                "Suggested Action": action,
+            }
+        )
+
+    migration_plan_df = pd.DataFrame(migration_plan_rows)
+
     columns_df = pd.DataFrame(
         [
             {
@@ -210,6 +274,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
 
     return {
         "Summary": summary_df,
+        "Migration Plan": migration_plan_df,
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
         "Cleanup Candidates": cleanup_candidates_df,
