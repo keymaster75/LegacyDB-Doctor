@@ -69,6 +69,28 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         ]
     )
 
+    primary_keys_df = pd.DataFrame(
+        [
+            {
+                "Table": table.table_name,
+                "PK Status": table.primary_key_source,
+                "PK Columns": ", ".join(table.primary_keys),
+                "Rows": table.row_count,
+                "Columns": len(table.columns),
+                "Note": (
+                    "Formal primary key detected."
+                    if table.primary_key_source == "formal"
+                    else "Unique index detected; may represent primary key."
+                    if table.primary_key_source == "unique_index"
+                    else "Possible primary key candidate detected."
+                    if table.primary_key_source == "candidate"
+                    else "No primary key or obvious candidate detected."
+                ),
+            }
+            for table in tables
+        ]
+    )
+
     columns_df = pd.DataFrame(
         [
             {
@@ -106,6 +128,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     return {
         "Summary": summary_df,
         "Tables": tables_df,
+        "Primary Keys": primary_keys_df,
         "Columns": columns_df,
         "Type Mapping": type_mapping_df,
         "Warnings": warnings_df,
