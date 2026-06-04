@@ -82,11 +82,23 @@ def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
 def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACCESS_DRIVER) -> tuple[list[TableInfo], list[WarningInfo]]:
     warnings: list[WarningInfo] = []
     conn = connect_access(database_path, driver=driver)
+
     try:
-        cursor = conn.cursor()
+        # Important:
+        # Do not iterate over cursor.tables() while reusing the same cursor
+        # for COUNT(*) and cursor.columns(). Some ODBC drivers reset the active
+        # result set, so only the first table is detected.
+        table_cursor = conn.cursor()
+        table_names = list(iter_user_tables(table_cursor))
+        table_cursor.close()
+
         tables: list[TableInfo] = []
-        for table_name in iter_user_tables(cursor):
-            row_count = count_rows(cursor, table_name)
+
+        for table_name in table_names:
+            row_cursor = conn.cursor()
+            row_count = count_rows(row_cursor, table_name)
+            row_cursor.close()
+
             if row_count is None:
                 warnings.append(
                     WarningInfo(
@@ -96,7 +108,11 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                         message="Could not count rows for this table.",
                     )
                 )
-            columns = get_columns(cursor, table_name)
+
+            column_cursor = conn.cursor()
+            columns = get_columns(column_cursor, table_name)
+            column_cursor.close()
+
             if not columns:
                 warnings.append(
                     WarningInfo(
@@ -106,7 +122,10 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                         message="No columns detected for this table.",
                     )
                 )
+
             tables.append(TableInfo(table_name=table_name, row_count=row_count, columns=columns))
+
         return tables, warnings
+
     finally:
         conn.close()
