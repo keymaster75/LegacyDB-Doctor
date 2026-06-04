@@ -46,10 +46,15 @@ def scan(
     summary = Table(title="Scan summary")
     summary.add_column("Metric")
     summary.add_column("Value", justify="right")
+    warning_count = sum(1 for item in warnings if item.level == "warning")
+    info_count = sum(1 for item in warnings if item.level == "info")
+
     summary.add_row("Tables", str(len(tables)))
     summary.add_row("Columns", str(sum(len(t.columns) for t in tables)))
     summary.add_row("Rows", str(sum(t.row_count or 0 for t in tables)))
-    summary.add_row("Warnings", str(len(warnings)))
+    summary.add_row("Warnings", str(warning_count))
+    summary.add_row("Info", str(info_count))
+    summary.add_row("Total notes", str(len(warnings)))
     console.print(summary)
 
 

@@ -33,12 +33,17 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     total_rows = sum(t.row_count or 0 for t in tables)
     total_columns = sum(len(t.columns) for t in tables)
 
+    warning_count = sum(1 for item in warnings if item.level == "warning")
+    info_count = sum(1 for item in warnings if item.level == "info")
+
     summary_df = pd.DataFrame(
         [
             {"Metric": "Tables", "Value": len(tables)},
             {"Metric": "Columns", "Value": total_columns},
             {"Metric": "Rows", "Value": total_rows},
-            {"Metric": "Warnings", "Value": len(warnings)},
+            {"Metric": "Warnings", "Value": warning_count},
+            {"Metric": "Info", "Value": info_count},
+            {"Metric": "Total notes", "Value": len(warnings)},
         ]
     )
 
