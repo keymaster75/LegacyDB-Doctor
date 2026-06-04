@@ -43,6 +43,49 @@ def iter_user_tables(cursor: pyodbc.Cursor) -> Iterable[str]:
             continue
         yield table_name
 
+def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
+    normalized = table_name.lower().strip()
+
+    suspicious_patterns = [
+        ("importerrors", "Table looks like an Access import error table."),
+        ("import errors", "Table looks like an Access import error table."),
+        ("copy of", "Table looks like a backup/copy table."),
+        ("backup", "Table looks like a backup table."),
+        ("_bak", "Table looks like a backup table."),
+        (" bak", "Table looks like a backup table."),
+        ("staro", "Table looks like an old/legacy copy table."),
+        ("old", "Table looks like an old/legacy copy table."),
+        ("temp", "Table looks like a temporary table."),
+        ("tmp", "Table looks like a temporary table."),
+        ("test", "Table looks like a test table."),
+    ]
+
+    for pattern, message in suspicious_patterns:
+        if pattern in normalized:
+            return WarningInfo(
+                level="warning",
+                table_name=table_name,
+                column_name=None,
+                message=message,
+            )
+
+    if " " in table_name:
+        return WarningInfo(
+            level="info",
+            table_name=table_name,
+            column_name=None,
+            message="Table name contains spaces. Consider renaming it before MySQL migration.",
+        )
+
+    if "$" in table_name:
+        return WarningInfo(
+            level="info",
+            table_name=table_name,
+            column_name=None,
+            message="Table name contains '$'. This is often created by Access imports/exports.",
+        )
+
+    return None
 
 def count_rows(cursor: pyodbc.Cursor, table_name: str) -> int | None:
     try:
@@ -95,6 +138,10 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
         tables: list[TableInfo] = []
 
         for table_name in table_names:
+            suspicious_warning = detect_suspicious_table_name(table_name)
+            if suspicious_warning:
+                warnings.append(suspicious_warning)
+
             row_cursor = conn.cursor()
             row_count = count_rows(row_cursor, table_name)
             row_cursor.close()
