@@ -49,12 +49,22 @@ def scan(
     warning_count = sum(1 for item in warnings if item.level == "warning")
     info_count = sum(1 for item in warnings if item.level == "info")
 
+    pk_formal_count = sum(1 for table in tables if table.primary_key_source == "formal")
+    pk_unique_index_count = sum(1 for table in tables if table.primary_key_source == "unique_index")
+    pk_candidate_count = sum(1 for table in tables if table.primary_key_source == "candidate")
+    pk_none_count = sum(1 for table in tables if table.primary_key_source == "none")
+
     summary.add_row("Tables", str(len(tables)))
     summary.add_row("Columns", str(sum(len(t.columns) for t in tables)))
     summary.add_row("Rows", str(sum(t.row_count or 0 for t in tables)))
     summary.add_row("Warnings", str(warning_count))
     summary.add_row("Info", str(info_count))
     summary.add_row("Total notes", str(len(warnings)))
+
+    summary.add_row("PK formal", str(pk_formal_count))
+    summary.add_row("PK unique_index", str(pk_unique_index_count))
+    summary.add_row("PK candidate", str(pk_candidate_count))
+    summary.add_row("PK none", str(pk_none_count))
     console.print(summary)
 
 

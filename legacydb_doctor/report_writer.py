@@ -36,6 +36,11 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     warning_count = sum(1 for item in warnings if item.level == "warning")
     info_count = sum(1 for item in warnings if item.level == "info")
 
+    pk_formal_count = sum(1 for table in tables if table.primary_key_source == "formal")
+    pk_unique_index_count = sum(1 for table in tables if table.primary_key_source == "unique_index")
+    pk_candidate_count = sum(1 for table in tables if table.primary_key_source == "candidate")
+    pk_none_count = sum(1 for table in tables if table.primary_key_source == "none")
+
     summary_df = pd.DataFrame(
         [
             {"Metric": "Tables", "Value": len(tables)},
@@ -44,6 +49,10 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
             {"Metric": "Warnings", "Value": warning_count},
             {"Metric": "Info", "Value": info_count},
             {"Metric": "Total notes", "Value": len(warnings)},
+            {"Metric": "PK formal", "Value": pk_formal_count},
+            {"Metric": "PK unique_index", "Value": pk_unique_index_count},
+            {"Metric": "PK candidate", "Value": pk_candidate_count},
+            {"Metric": "PK none", "Value": pk_none_count},
         ]
     )
 
