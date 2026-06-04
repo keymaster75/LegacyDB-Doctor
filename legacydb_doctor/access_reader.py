@@ -113,7 +113,7 @@ def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
 def detect_suspicious_column_name(table_name: str, column_name: str) -> WarningInfo | None:
     suggested_name = suggest_mysql_identifier(column_name)
 
-    if suggested_name != column_name.lower():
+    if suggested_name != column_name:
         return WarningInfo(
             level="info",
             table_name=table_name,
