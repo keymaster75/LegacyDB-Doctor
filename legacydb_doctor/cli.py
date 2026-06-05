@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .access_reader import DEFAULT_ACCESS_DRIVER, AccessConnectionError, inspect_access_database
-from .report_writer import write_excel_report
+from .report_writer import build_data_quality_rows, write_excel_report
 from .sql_writer import write_schema_sql
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
@@ -63,6 +63,10 @@ def scan(
     pk_unique_index_count = sum(1 for table in tables if table.primary_key_source == "unique_index")
     pk_candidate_count = sum(1 for table in tables if table.primary_key_source == "candidate")
     pk_none_count = sum(1 for table in tables if table.primary_key_source == "none")
+    data_quality_rows = build_data_quality_rows(tables)
+    dq_high_count = sum(1 for item in data_quality_rows if item["Severity"] == "High")
+    dq_medium_count = sum(1 for item in data_quality_rows if item["Severity"] == "Medium")
+    dq_low_count = sum(1 for item in data_quality_rows if item["Severity"] == "Low")
 
     summary.add_row("Tables", str(len(tables)))
     summary.add_row("Columns", str(sum(len(t.columns) for t in tables)))
@@ -75,8 +79,10 @@ def scan(
     summary.add_row("PK unique_index", str(pk_unique_index_count))
     summary.add_row("PK candidate", str(pk_candidate_count))
     summary.add_row("PK none", str(pk_none_count))
+    summary.add_row("DQ high", str(dq_high_count))
+    summary.add_row("DQ medium", str(dq_medium_count))
+    summary.add_row("DQ low", str(dq_low_count))
     console.print(summary)
-
 
 @app.command("drivers")
 def list_drivers() -> None:
