@@ -13,6 +13,96 @@ from .mysql_mapper import map_access_type_to_mysql
 
 DEFAULT_ACCESS_DRIVER = "Microsoft Access Driver (*.mdb, *.accdb)"
 
+MYSQL_RISKY_IDENTIFIERS = {
+    "accessible",
+    "add",
+    "all",
+    "alter",
+    "analyze",
+    "and",
+    "as",
+    "asc",
+    "before",
+    "between",
+    "by",
+    "call",
+    "case",
+    "change",
+    "check",
+    "column",
+    "condition",
+    "constraint",
+    "create",
+    "cross",
+    "current_date",
+    "current_time",
+    "current_timestamp",
+    "database",
+    "date",
+    "day",
+    "delete",
+    "desc",
+    "describe",
+    "distinct",
+    "drop",
+    "each",
+    "else",
+    "exists",
+    "false",
+    "for",
+    "foreign",
+    "from",
+    "group",
+    "having",
+    "if",
+    "in",
+    "index",
+    "inner",
+    "insert",
+    "interval",
+    "into",
+    "is",
+    "join",
+    "key",
+    "left",
+    "like",
+    "limit",
+    "lock",
+    "long",
+    "match",
+    "not",
+    "null",
+    "on",
+    "or",
+    "order",
+    "outer",
+    "primary",
+    "procedure",
+    "range",
+    "read",
+    "references",
+    "right",
+    "row",
+    "select",
+    "set",
+    "table",
+    "then",
+    "to",
+    "true",
+    "union",
+    "unique",
+    "update",
+    "use",
+    "user",
+    "values",
+    "varchar",
+    "view",
+    "when",
+    "where",
+    "with",
+    "year",
+}
+
 
 class AccessConnectionError(RuntimeError):
     """Raised when the Access database cannot be opened."""
@@ -76,6 +166,9 @@ def suggest_mysql_identifier(name: str) -> str:
 
     return value
 
+def is_mysql_risky_identifier(name: str) -> bool:
+    return suggest_mysql_identifier(name) in MYSQL_RISKY_IDENTIFIERS
+
 def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
     normalized = table_name.lower().strip()
     suggested_name = suggest_mysql_identifier(table_name)
@@ -113,10 +206,26 @@ def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
             message=f"Table name may need normalization for MySQL. Suggested name: `{suggested_name}`.",
         )
 
+    if suggested_name in MYSQL_RISKY_IDENTIFIERS:
+        return WarningInfo(
+            level="warning",
+            table_name=table_name,
+            column_name=None,
+            message=f"Table name may conflict with MySQL reserved/risky identifier `{suggested_name}`. Consider renaming it.",
+        )
+
     return None
 
 def detect_suspicious_column_name(table_name: str, column_name: str) -> WarningInfo | None:
     suggested_name = suggest_mysql_identifier(column_name)
+
+    if suggested_name in MYSQL_RISKY_IDENTIFIERS:
+        return WarningInfo(
+            level="warning",
+            table_name=table_name,
+            column_name=column_name,
+            message=f"Column name may conflict with MySQL reserved/risky identifier `{suggested_name}`. Consider renaming it.",
+        )
 
     if suggested_name != column_name:
         return WarningInfo(
