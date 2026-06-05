@@ -35,6 +35,11 @@ def scan(
             "--report-only",
             help="Skip schema.sql generation and create only the Excel report.",
         ),
+        summary_only: bool = typer.Option(
+            False,
+            "--summary-only",
+            help="Only print scan summary; skip Excel report and schema generation.",
+        ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
@@ -51,19 +56,22 @@ def scan(
         console.print(f"[bold red]Error:[/bold red] {exc}")
         raise typer.Exit(code=1) from exc
 
-    report_path = write_excel_report(tables, warnings, out)
-    console.print(f"[green]Excel report created:[/green] {report_path}")
+    if summary_only:
+        console.print("[yellow]Summary-only mode: Excel report and schema SQL generation skipped.[/yellow]")
+    else:
+        report_path = write_excel_report(tables, warnings, out)
+        console.print(f"[green]Excel report created:[/green] {report_path}")
 
-    if no_schema:
-        console.print("[yellow]Schema SQL generation skipped.[/yellow]")
-    elif schema_out is not None:
-        schema_path = write_schema_sql(tables, schema_out, use_recommended_names=use_recommended_names)
-        console.print(f"[green]Schema SQL created:[/green] {schema_path}")
+        if no_schema:
+            console.print("[yellow]Schema SQL generation skipped.[/yellow]")
+        elif schema_out is not None:
+            schema_path = write_schema_sql(tables, schema_out, use_recommended_names=use_recommended_names)
+            console.print(f"[green]Schema SQL created:[/green] {schema_path}")
 
-        if use_recommended_names:
-            console.print("[cyan]Schema uses recommended MySQL-safe identifiers.[/cyan]")
-        else:
-            console.print("[cyan]Schema uses original Access identifiers.[/cyan]")
+            if use_recommended_names:
+                console.print("[cyan]Schema uses recommended MySQL-safe identifiers.[/cyan]")
+            else:
+                console.print("[cyan]Schema uses original Access identifiers.[/cyan]")
 
     summary = Table(title="Scan summary")
     summary.add_column("Metric")
