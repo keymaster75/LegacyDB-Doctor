@@ -21,10 +21,24 @@ def main() -> None:
     """Inspect legacy Access databases before migrating to MySQL/MariaDB."""
 
 
+def build_default_output_paths(database: Path, output_dir: Path) -> tuple[Path, Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    database_stem = database.stem
+    report_path = output_dir / f"{database_stem}_report.xlsx"
+    schema_path = output_dir / f"{database_stem}_schema.sql"
+
+    return report_path, schema_path
+
 @app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     out: Path = typer.Option(Path("legacydb_report.xlsx"), "--out", "-o", help="Excel report output path"),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output-dir",
+        help="Output directory for generated report and schema. File names are based on the database name.",
+    ),
     schema_out: Optional[Path] = typer.Option(
         Path("schema.sql"),
         "--schema-out",
@@ -56,6 +70,9 @@ def scan(
     except AccessConnectionError as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
         raise typer.Exit(code=1) from exc
+
+    if output_dir is not None:
+        out, schema_out = build_default_output_paths(database, output_dir)
 
     if summary_only:
         console.print("[yellow]Summary-only mode: Excel report and schema SQL generation skipped.[/yellow]")
