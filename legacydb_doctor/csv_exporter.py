@@ -34,6 +34,7 @@ def export_table_to_csv(
     table_name: str,
     output_dir: Path,
     use_recommended_names: bool = False,
+    limit: int | None = None,
 ) -> tuple[Path | None, int | None, str | None]:
     """
     Export a single Access table to CSV.
@@ -49,7 +50,10 @@ def export_table_to_csv(
 
     try:
         cursor = conn.cursor()
-        rows = cursor.execute(f"SELECT * FROM {access_identifier(table_name)}")
+        if limit is not None and limit > 0:
+            rows = cursor.execute(f"SELECT TOP {int(limit)} * FROM {access_identifier(table_name)}")
+        else:
+            rows = cursor.execute(f"SELECT * FROM {access_identifier(table_name)}")
         columns = [column[0] for column in rows.description]
 
         row_count = 0
@@ -82,6 +86,7 @@ def export_access_tables_to_csv(
     use_recommended_names: bool = False,
     table_filter: list[str] | None = None,
     skip_empty: bool = False,
+    limit: int | None = None,
 ) -> list[dict]:
     """
     Export all user Access tables to CSV files.
@@ -124,6 +129,7 @@ def export_access_tables_to_csv(
                 table_name=table_name,
                 output_dir=output,
                 use_recommended_names=use_recommended_names,
+                limit=limit,
             )
 
             results.append(

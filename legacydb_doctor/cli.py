@@ -129,6 +129,12 @@ def export_csv(
         "--skip-empty",
         help="Skip exporting empty tables and record them as skipped_empty in the manifest.",
     ),
+    limit: Optional[int] = typer.Option(
+        None,
+        "--limit",
+        min=1,
+        help="Export at most N rows per table. Useful for sampling large databases.",
+    ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
@@ -152,6 +158,7 @@ def export_csv(
             use_recommended_names=use_recommended_names,
             table_filter=table_filter,
             skip_empty=skip_empty,
+            limit=limit,
         )
     except AccessConnectionError as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
