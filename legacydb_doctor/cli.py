@@ -21,20 +21,21 @@ def main() -> None:
 
 
 @app.command()
+@app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     out: Path = typer.Option(Path("legacydb_report.xlsx"), "--out", "-o", help="Excel report output path"),
-        schema_out: Optional[Path] = typer.Option(
-            Path("schema.sql"),
-            "--schema-out",
-            help="Generated MySQL schema output path.",
-        ),
-        no_schema: bool = typer.Option(
-            False,
-            "--no-schema",
-            help="Skip schema.sql generation and create only the Excel report.",
-        ),
-        driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
+    schema_out: Optional[Path] = typer.Option(
+        Path("schema.sql"),
+        "--schema-out",
+        help="Generated MySQL schema output path.",
+    ),
+    no_schema: bool = typer.Option(
+        False,
+        "--no-schema",
+        help="Skip schema.sql generation and create only the Excel report.",
+    ),
+    driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
         "--use-recommended-names",
