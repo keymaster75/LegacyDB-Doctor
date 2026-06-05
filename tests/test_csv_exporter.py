@@ -19,6 +19,13 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
             "status": "error",
             "error": "Example error",
         },
+        {
+            "table": "Razredni",
+            "csv_path": None,
+            "row_count": 0,
+            "status": "skipped_empty",
+            "error": None,
+        },
     ]
 
     manifest_path = write_export_manifest(results, tmp_path)
@@ -28,14 +35,16 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
     with manifest_path.open("r", encoding="utf-8-sig", newline="") as csv_file:
         rows = list(csv.DictReader(csv_file))
 
-    assert len(rows) == 2
+    assert len(rows) == 3
     assert rows[0]["table"] == "Autor"
     assert rows[0]["row_count"] == "10"
     assert rows[0]["status"] == "ok"
     assert rows[1]["table"] == "Problem"
     assert rows[1]["status"] == "error"
     assert rows[1]["error"] == "Example error"
-
+    assert rows[2]["table"] == "Razredni"
+    assert rows[2]["row_count"] == "0"
+    assert rows[2]["status"] == "skipped_empty"
 
 def test_write_export_manifest_creates_folder_for_empty_results(tmp_path):
     output_dir = tmp_path / "missing_folder"
