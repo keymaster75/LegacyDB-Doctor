@@ -1,33 +1,46 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
 # Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-.Python
-.venv/
-venv/
-env/
-
-# PyCharm
-.idea/
-
-# Build
-build/
-dist/
+.pytest_cache/
 *.egg-info/
+dist/
+build/
 
-# Reports / generated files
-*.xlsx
-*.xls
-*.sql
-*.log
-
-# Local databases - do not commit real client/company data
-*.mdb
-*.accdb
-*.sqlite
-*.db
+# IDE
+.idea/
+.vscode/
 
 # OS
-Thumbs.db
 .DS_Store
+Thumbs.db
+
+# Legacy database files - never commit real client/business databases
+*.mdb
+*.accdb
+*.ldb
+*.laccdb
+
+# Generated reports and exports
+*.xlsx
+*.xls
+*.csv
+*.sql
+
+# Local test/output folders
+out/
+output/
+reports/
+exports/
+tmp/
+temp/
+
+# Local environment/config
+.env
+*.local
