@@ -1,0 +1,82 @@
+from legacydb_doctor.models import ColumnInfo, TableInfo, WarningInfo
+from legacydb_doctor.summary_builder import build_scan_summary
+
+
+def test_build_scan_summary_counts_tables_columns_rows_warnings_pk_and_dq():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            row_count=10,
+            columns=[
+                ColumnInfo(
+                    table_name="Autor",
+                    column_name="SifA",
+                    ordinal_position=1,
+                    type_name="COUNTER",
+                    data_type=None,
+                    column_size=None,
+                    decimal_digits=None,
+                    nullable=False,
+                    mysql_type="INT AUTO_INCREMENT",
+                    empty_count=0,
+                    filled_count=10,
+                    fill_rate_percent=100.0,
+                ),
+                ColumnInfo(
+                    table_name="Autor",
+                    column_name="Napomena",
+                    ordinal_position=2,
+                    type_name="TEXT",
+                    data_type=None,
+                    column_size=255,
+                    decimal_digits=None,
+                    nullable=True,
+                    mysql_type="VARCHAR(255)",
+                    empty_count=10,
+                    filled_count=0,
+                    fill_rate_percent=0.0,
+                ),
+            ],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Problem",
+            row_count=0,
+            columns=[],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+    ]
+
+    warnings = [
+        WarningInfo(
+            level="warning",
+            table_name="Problem",
+            column_name=None,
+            message="No primary key detected.",
+        ),
+        WarningInfo(
+            level="info",
+            table_name="Autor",
+            column_name="Napomena",
+            message="Column name may need normalization.",
+        ),
+    ]
+
+    summary = build_scan_summary(tables, warnings)
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Tables"] == 2
+    assert summary_dict["Columns"] == 2
+    assert summary_dict["Rows"] == 10
+    assert summary_dict["Warnings"] == 1
+    assert summary_dict["Info"] == 1
+    assert summary_dict["Total notes"] == 2
+    assert summary_dict["PK formal"] == 0
+    assert summary_dict["PK unique_index"] == 1
+    assert summary_dict["PK candidate"] == 0
+    assert summary_dict["PK none"] == 1
+    assert summary_dict["DQ high"] == 1
+    assert summary_dict["DQ medium"] == 0
+    assert summary_dict["DQ low"] == 0
