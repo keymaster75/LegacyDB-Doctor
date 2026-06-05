@@ -19,8 +19,6 @@ console = Console()
 def main() -> None:
     """Inspect legacy Access databases before migrating to MySQL/MariaDB."""
 
-
-@app.command()
 @app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
@@ -95,6 +93,7 @@ def scan(
     summary.add_row("DQ medium", str(dq_medium_count))
     summary.add_row("DQ low", str(dq_low_count))
     console.print(summary)
+
 
 @app.command("drivers")
 def list_drivers() -> None:
