@@ -21,7 +21,6 @@ def main() -> None:
 
 
 @app.command()
-@app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     out: Path = typer.Option(Path("legacydb_report.xlsx"), "--out", "-o", help="Excel report output path"),
