@@ -24,8 +24,17 @@ def main() -> None:
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     out: Path = typer.Option(Path("legacydb_report.xlsx"), "--out", "-o", help="Excel report output path"),
-    schema_out: Optional[Path] = typer.Option(Path("schema.sql"), "--schema-out", help="Generated MySQL schema output path. Use empty value to skip."),
-    driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
+        schema_out: Optional[Path] = typer.Option(
+            Path("schema.sql"),
+            "--schema-out",
+            help="Generated MySQL schema output path.",
+        ),
+        no_schema: bool = typer.Option(
+            False,
+            "--no-schema",
+            help="Skip schema.sql generation and create only the Excel report.",
+        ),
+        driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
         "--use-recommended-names",
@@ -44,7 +53,9 @@ def scan(
     report_path = write_excel_report(tables, warnings, out)
     console.print(f"[green]Excel report created:[/green] {report_path}")
 
-    if schema_out is not None:
+    if no_schema:
+        console.print("[yellow]Schema SQL generation skipped.[/yellow]")
+    elif schema_out is not None:
         schema_path = write_schema_sql(tables, schema_out, use_recommended_names=use_recommended_names)
         console.print(f"[green]Schema SQL created:[/green] {schema_path}")
 
