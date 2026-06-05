@@ -1,6 +1,6 @@
 import csv
 
-from legacydb_doctor.csv_exporter import write_export_manifest
+from legacydb_doctor.csv_exporter import filter_table_names, write_export_manifest
 
 
 def test_write_export_manifest_creates_manifest_for_results(tmp_path):
@@ -49,3 +49,24 @@ def test_write_export_manifest_creates_folder_for_empty_results(tmp_path):
         rows = list(csv.DictReader(csv_file))
 
     assert rows == []
+
+def test_filter_table_names_returns_all_when_no_filter():
+    table_names = ["Autor", "Naslov", "Clan"]
+
+    assert filter_table_names(table_names, None) == table_names
+
+
+def test_filter_table_names_matches_case_insensitive_names():
+    table_names = ["Autor", "Naslov", "Clan", "Drzi"]
+
+    result = filter_table_names(table_names, ["autor", "CLAN"])
+
+    assert result == ["Autor", "Clan"]
+
+
+def test_filter_table_names_returns_empty_when_no_match():
+    table_names = ["Autor", "Naslov", "Clan"]
+
+    result = filter_table_names(table_names, ["NePostoji"])
+
+    assert result == []

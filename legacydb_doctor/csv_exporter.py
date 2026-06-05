@@ -68,6 +68,12 @@ def export_table_to_csv(
     except Exception as exc:
         return None, None, str(exc)
 
+def filter_table_names(table_names: list[str], table_filter: list[str] | None = None) -> list[str]:
+    if not table_filter:
+        return table_names
+
+    wanted = {name.strip().lower() for name in table_filter if name.strip()}
+    return [name for name in table_names if name.lower() in wanted]
 
 def export_access_tables_to_csv(
     database_path: str | Path,
@@ -89,9 +95,7 @@ def export_access_tables_to_csv(
         table_names = list(iter_user_tables(table_cursor))
         table_cursor.close()
 
-        if table_filter:
-            wanted = {name.strip().lower() for name in table_filter if name.strip()}
-            table_names = [name for name in table_names if name.lower() in wanted]
+        table_names = filter_table_names(table_names, table_filter)
 
         results: list[dict] = []
 
