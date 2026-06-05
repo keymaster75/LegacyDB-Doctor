@@ -50,6 +50,7 @@ LegacyDB Doctor can currently:
 - optionally open the generated Excel report with `--open-report`
 - export Access user tables to CSV files with `_export_manifest.csv`
 - filter CSV export with `--tables`
+- skip empty tables during CSV export with `--skip-empty`
 
 ---
 
@@ -267,7 +268,19 @@ Export only selected tables:
 legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\csv_selected" --tables Autor,Naslov,Clan --use-recommended-names
 ```
 
-The export creates one CSV file per table and a manifest file:
+Skip empty tables during CSV export:
+
+```powershell
+legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\csv_skip_empty" --skip-empty --use-recommended-names
+```
+
+Skipped empty tables are not exported as CSV files, but they are still recorded in `_export_manifest.csv` with status:
+
+```text
+skipped_empty
+```
+
+The export creates one CSV file per exported table and a manifest file:
 
 ```text
 _export_manifest.csv
