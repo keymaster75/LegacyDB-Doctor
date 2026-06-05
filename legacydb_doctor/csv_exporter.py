@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pyodbc
 
-from .access_reader import access_identifier, connect_access, iter_user_tables, suggest_mysql_identifier
+from .access_reader import access_identifier, connect_access, count_rows, iter_user_tables, suggest_mysql_identifier
 
 def write_export_manifest(results: list[dict], output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -81,6 +81,7 @@ def export_access_tables_to_csv(
     driver: str,
     use_recommended_names: bool = False,
     table_filter: list[str] | None = None,
+    skip_empty: bool = False,
 ) -> list[dict]:
     """
     Export all user Access tables to CSV files.
@@ -100,6 +101,24 @@ def export_access_tables_to_csv(
         results: list[dict] = []
 
         for table_name in table_names:
+
+            if skip_empty:
+                row_cursor = conn.cursor()
+                row_count_before_export = count_rows(row_cursor, table_name)
+                row_cursor.close()
+
+                if row_count_before_export == 0:
+                    results.append(
+                        {
+                            "table": table_name,
+                            "csv_path": None,
+                            "row_count": 0,
+                            "status": "skipped_empty",
+                            "error": None,
+                        }
+                    )
+                    continue
+
             csv_path, row_count, error = export_table_to_csv(
                 conn=conn,
                 table_name=table_name,

@@ -124,6 +124,11 @@ def export_csv(
         "--tables",
         help="Comma-separated list of Access table names to export, e.g. Autor,Naslov,Clan.",
     ),
+    skip_empty: bool = typer.Option(
+        False,
+        "--skip-empty",
+        help="Skip exporting empty tables and record them as skipped_empty in the manifest.",
+    ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
@@ -146,6 +151,7 @@ def export_csv(
             driver=driver,
             use_recommended_names=use_recommended_names,
             table_filter=table_filter,
+            skip_empty=skip_empty,
         )
     except AccessConnectionError as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
@@ -155,6 +161,8 @@ def export_csv(
     error_count = sum(1 for item in results if item["status"] == "error")
     total_rows = sum(item["row_count"] or 0 for item in results)
 
+    skipped_empty_count = sum(1 for item in results if item["status"] == "skipped_empty")
+
     if table_filter and not results:
         console.print("[yellow]No matching tables found for the provided --tables filter.[/yellow]")
 
@@ -163,6 +171,7 @@ def export_csv(
     table.add_column("Value", justify="right")
     table.add_row("Tables exported", str(ok_count))
     table.add_row("Tables failed", str(error_count))
+    table.add_row("Tables skipped empty", str(skipped_empty_count))
     table.add_row("Rows exported", str(total_rows))
     table.add_row("Output directory", str(output_dir))
     console.print(table)
