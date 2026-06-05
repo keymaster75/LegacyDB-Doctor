@@ -19,6 +19,7 @@ console = Console()
 def main() -> None:
     """Inspect legacy Access databases before migrating to MySQL/MariaDB."""
 
+
 @app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
@@ -28,11 +29,12 @@ def scan(
         "--schema-out",
         help="Generated MySQL schema output path.",
     ),
-    no_schema: bool = typer.Option(
-        False,
-        "--no-schema",
-        help="Skip schema.sql generation and create only the Excel report.",
-    ),
+        no_schema: bool = typer.Option(
+            False,
+            "--no-schema",
+            "--report-only",
+            help="Skip schema.sql generation and create only the Excel report.",
+        ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
