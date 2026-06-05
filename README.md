@@ -51,6 +51,7 @@ LegacyDB Doctor can currently:
 - export Access user tables to CSV files with `_export_manifest.csv`
 - filter CSV export with `--tables`
 - skip empty tables during CSV export with `--skip-empty`
+- limit CSV export rows per table with `--limit`
 
 ---
 
@@ -280,6 +281,14 @@ Skipped empty tables are not exported as CSV files, but they are still recorded 
 skipped_empty
 ```
 
+Export only a sample of rows from each table:
+
+```powershell
+legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\csv_sample" --limit 100 --use-recommended-names
+```
+
+This exports at most 100 rows per table and is useful for quickly reviewing large databases.
+
 The export creates one CSV file per exported table and a manifest file:
 
 ```text
@@ -427,7 +436,7 @@ python -m pytest -q
 Example current result:
 
 ```text
-12+ tests passed
+tests passed
 ```
 
 Check editable package installation and CLI entry point:
