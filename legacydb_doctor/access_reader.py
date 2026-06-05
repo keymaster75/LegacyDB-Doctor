@@ -352,7 +352,13 @@ def guess_primary_key_candidates(columns: list[ColumnInfo]) -> list[str]:
 
 def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
     columns: list[ColumnInfo] = []
-    for col in cursor.columns(table=table_name):
+
+    try:
+        column_rows = list(cursor.columns(table=table_name))
+    except (pyodbc.Error, UnicodeDecodeError):
+        return columns
+
+    for col in column_rows:
         type_name = getattr(col, "type_name", None)
         column_size = getattr(col, "column_size", None)
         decimal_digits = getattr(col, "decimal_digits", None)
@@ -373,8 +379,8 @@ def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
                 mysql_type=mysql_type,
             )
         )
-    return columns
 
+    return columns
 
 def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACCESS_DRIVER) -> tuple[list[TableInfo], list[WarningInfo]]:
     warnings: list[WarningInfo] = []
@@ -461,7 +467,7 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                         level="warning",
                         table_name=table_name,
                         column_name=None,
-                        message="No columns detected for this table.",
+                        message="No columns detected for this table, or Access ODBC could not read column metadata.",
                     )
                 )
 
