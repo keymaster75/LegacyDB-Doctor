@@ -119,6 +119,11 @@ def scan(
 def export_csv(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
     output_dir: Path = typer.Option(..., "--output-dir", "-o", help="Directory where CSV files will be created."),
+    tables: Optional[str] = typer.Option(
+        None,
+        "--tables",
+        help="Comma-separated list of Access table names to export, e.g. Autor,Naslov,Clan.",
+    ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
@@ -129,12 +134,18 @@ def export_csv(
     """Export Access user tables to CSV files."""
     console.print(f"[bold]LegacyDB Doctor[/bold] exporting CSV files from: {database}")
 
+    table_filter = None
+    if tables:
+        table_filter = [item.strip() for item in tables.split(",") if item.strip()]
+        console.print(f"[cyan]Table filter:[/cyan] {', '.join(table_filter)}")
+
     try:
         results = export_access_tables_to_csv(
             database_path=database,
             output_dir=output_dir,
             driver=driver,
             use_recommended_names=use_recommended_names,
+            table_filter=table_filter,
         )
     except AccessConnectionError as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
@@ -143,6 +154,9 @@ def export_csv(
     ok_count = sum(1 for item in results if item["status"] == "ok")
     error_count = sum(1 for item in results if item["status"] == "error")
     total_rows = sum(item["row_count"] or 0 for item in results)
+
+    if table_filter and not results:
+        console.print("[yellow]No matching tables found for the provided --tables filter.[/yellow]")
 
     table = Table(title="CSV export summary")
     table.add_column("Metric")
