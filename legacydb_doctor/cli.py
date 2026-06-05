@@ -14,6 +14,8 @@ from .sql_writer import write_schema_sql
 
 import os
 
+from .csv_exporter import export_access_tables_to_csv
+
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
 
@@ -112,6 +114,55 @@ def scan(
         summary.add_row(str(row["Metric"]), str(row["Value"]))
 
     console.print(summary)
+
+@app.command("export-csv")
+def export_csv(
+    database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
+    output_dir: Path = typer.Option(..., "--output-dir", "-o", help="Directory where CSV files will be created."),
+    driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
+    use_recommended_names: bool = typer.Option(
+        False,
+        "--use-recommended-names",
+        help="Use normalized MySQL-safe names for CSV file names.",
+    ),
+) -> None:
+    """Export Access user tables to CSV files."""
+    console.print(f"[bold]LegacyDB Doctor[/bold] exporting CSV files from: {database}")
+
+    try:
+        results = export_access_tables_to_csv(
+            database_path=database,
+            output_dir=output_dir,
+            driver=driver,
+            use_recommended_names=use_recommended_names,
+        )
+    except AccessConnectionError as exc:
+        console.print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    ok_count = sum(1 for item in results if item["status"] == "ok")
+    error_count = sum(1 for item in results if item["status"] == "error")
+    total_rows = sum(item["row_count"] or 0 for item in results)
+
+    table = Table(title="CSV export summary")
+    table.add_column("Metric")
+    table.add_column("Value", justify="right")
+    table.add_row("Tables exported", str(ok_count))
+    table.add_row("Tables failed", str(error_count))
+    table.add_row("Rows exported", str(total_rows))
+    table.add_row("Output directory", str(output_dir))
+    console.print(table)
+
+    if error_count:
+        error_table = Table(title="CSV export errors")
+        error_table.add_column("Table")
+        error_table.add_column("Error")
+
+        for item in results:
+            if item["status"] == "error":
+                error_table.add_row(str(item["table"]), str(item["error"]))
+
+        console.print(error_table)
 
 @app.command("drivers")
 def list_drivers() -> None:
