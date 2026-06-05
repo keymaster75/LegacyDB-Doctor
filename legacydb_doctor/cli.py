@@ -12,6 +12,8 @@ from .report_writer import write_excel_report
 from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
 
+import os
+
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
 
@@ -38,6 +40,11 @@ def scan(
         None,
         "--output-dir",
         help="Output directory for generated report and schema. File names are based on the database name.",
+    ),
+    open_report: bool = typer.Option(
+        False,
+        "--open-report",
+        help="Open the generated Excel report after scan completion.",
     ),
     schema_out: Optional[Path] = typer.Option(
         Path("schema.sql"),
@@ -79,6 +86,12 @@ def scan(
     else:
         report_path = write_excel_report(tables, warnings, out)
         console.print(f"[green]Excel report created:[/green] {report_path}")
+
+        if open_report:
+            try:
+                os.startfile(report_path)
+            except OSError as exc:
+                console.print(f"[yellow]Could not open report automatically:[/yellow] {exc}")
 
         if no_schema:
             console.print("[yellow]Schema SQL generation skipped.[/yellow]")
