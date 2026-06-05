@@ -7,6 +7,26 @@ import pyodbc
 
 from .access_reader import access_identifier, connect_access, iter_user_tables, suggest_mysql_identifier
 
+def write_export_manifest(results: list[dict], output_dir: Path) -> Path:
+    manifest_path = output_dir / "_export_manifest.csv"
+
+    with manifest_path.open("w", newline="", encoding="utf-8-sig") as csv_file:
+        fieldnames = ["table", "csv_path", "row_count", "status", "error"]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for item in results:
+            writer.writerow(
+                {
+                    "table": item.get("table"),
+                    "csv_path": item.get("csv_path"),
+                    "row_count": item.get("row_count"),
+                    "status": item.get("status"),
+                    "error": item.get("error"),
+                }
+            )
+
+    return manifest_path
 
 def export_table_to_csv(
     conn: pyodbc.Connection,
@@ -86,6 +106,8 @@ def export_access_tables_to_csv(
                     "error": error,
                 }
             )
+
+        write_export_manifest(results, output)
 
         return results
 
