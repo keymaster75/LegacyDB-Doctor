@@ -48,6 +48,8 @@ LegacyDB Doctor can currently:
 - run summary-only scans with `--summary-only`
 - generate outputs into a selected folder with `--output-dir`
 - optionally open the generated Excel report with `--open-report`
+- export Access user tables to CSV files with `_export_manifest.csv`
+- filter CSV export with `--tables`
 
 ---
 
@@ -245,6 +247,37 @@ On Windows, the generated report can be opened automatically:
 python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\out" --report-only --open-report
 ```
 
+### Export Access tables to CSV
+
+Export all user tables to CSV files:
+
+```powershell
+legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\csv"
+```
+
+Use normalized MySQL-safe file names:
+
+```powershell
+legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\csv_recommended" --use-recommended-names
+```
+
+Export only selected tables:
+
+```powershell
+legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\csv_selected" --tables Autor,Naslov,Clan --use-recommended-names
+```
+
+The export creates one CSV file per table and a manifest file:
+
+```text
+_export_manifest.csv
+autor.csv
+naslov.csv
+clan.csv
+```
+
+CSV files are written with `utf-8-sig` encoding so they can be opened more easily in Excel.
+
 ---
 
 ## Generated SQL
@@ -351,6 +384,7 @@ legacydb-doctor/
     __main__.py
     cli.py
     access_reader.py
+    csv_exporter.py
     models.py
     mysql_mapper.py
     report_writer.py
@@ -380,7 +414,7 @@ python -m pytest -q
 Example current result:
 
 ```text
-10 passed in 1.03s
+12+ tests passed
 ```
 
 Check editable package installation and CLI entry point:
@@ -426,7 +460,7 @@ The command should not list real local databases, generated Excel reports, or ge
 
 Planned or possible future features:
 
-- export Access data to CSV
+- CSV export improvements and validation
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
 - duplicate value detection for candidate key columns
