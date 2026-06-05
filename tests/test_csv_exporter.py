@@ -2,6 +2,7 @@ import csv
 
 from legacydb_doctor.csv_exporter import filter_table_names, write_export_manifest
 
+from legacydb_doctor.csv_exporter import build_select_sql, filter_table_names, write_export_manifest
 
 def test_write_export_manifest_creates_manifest_for_results(tmp_path):
     results = [
@@ -79,3 +80,19 @@ def test_filter_table_names_returns_empty_when_no_match():
     result = filter_table_names(table_names, ["NePostoji"])
 
     assert result == []
+
+def test_build_select_sql_without_limit():
+    assert build_select_sql("Autor") == "SELECT * FROM [Autor]"
+
+
+def test_build_select_sql_with_limit():
+    assert build_select_sql("Autor", 5) == "SELECT TOP 5 * FROM [Autor]"
+
+
+def test_build_select_sql_ignores_zero_or_negative_limit():
+    assert build_select_sql("Autor", 0) == "SELECT * FROM [Autor]"
+    assert build_select_sql("Autor", -1) == "SELECT * FROM [Autor]"
+
+
+def test_build_select_sql_quotes_access_table_names():
+    assert build_select_sql("Copy Of Naslov", 10) == "SELECT TOP 10 * FROM [Copy Of Naslov]"

@@ -29,6 +29,12 @@ def write_export_manifest(results: list[dict], output_dir: Path) -> Path:
 
     return manifest_path
 
+def build_select_sql(table_name: str, limit: int | None = None) -> str:
+    if limit is not None and limit > 0:
+        return f"SELECT TOP {int(limit)} * FROM {access_identifier(table_name)}"
+
+    return f"SELECT * FROM {access_identifier(table_name)}"
+
 def export_table_to_csv(
     conn: pyodbc.Connection,
     table_name: str,
@@ -50,10 +56,7 @@ def export_table_to_csv(
 
     try:
         cursor = conn.cursor()
-        if limit is not None and limit > 0:
-            rows = cursor.execute(f"SELECT TOP {int(limit)} * FROM {access_identifier(table_name)}")
-        else:
-            rows = cursor.execute(f"SELECT * FROM {access_identifier(table_name)}")
+        rows = cursor.execute(build_select_sql(table_name, limit))
         columns = [column[0] for column in rows.description]
 
         row_count = 0
