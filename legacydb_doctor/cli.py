@@ -13,6 +13,7 @@ from .csv_exporter import export_access_tables_to_csv
 from .report_writer import write_excel_report
 from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
+from .csv_validator import validate_csv_export
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -206,6 +207,46 @@ def export_csv(
 
         console.print(error_table)
 
+@app.command("validate-csv")
+def validate_csv(
+    export_dir: Path = typer.Argument(..., help="Directory containing _export_manifest.csv and exported CSV files."),
+) -> None:
+    """Validate a CSV export folder against its manifest."""
+    console.print(f"[bold]LegacyDB Doctor[/bold] validating CSV export: {export_dir}")
+
+    results = validate_csv_export(export_dir)
+
+    ok_count = sum(1 for item in results if item["level"] == "ok")
+    warning_count = sum(1 for item in results if item["level"] == "warning")
+    error_count = sum(1 for item in results if item["level"] == "error")
+
+    summary = Table(title="CSV validation summary")
+    summary.add_column("Metric")
+    summary.add_column("Value", justify="right")
+    summary.add_row("OK", str(ok_count))
+    summary.add_row("Warnings", str(warning_count))
+    summary.add_row("Errors", str(error_count))
+    summary.add_row("Checked items", str(len(results)))
+    console.print(summary)
+
+    if warning_count or error_count:
+        details = Table(title="CSV validation details")
+        details.add_column("Level")
+        details.add_column("Table")
+        details.add_column("Message")
+
+        for item in results:
+            if item["level"] in {"warning", "error"}:
+                details.add_row(
+                    str(item["level"]),
+                    str(item.get("table") or ""),
+                    str(item["message"]),
+                )
+
+        console.print(details)
+
+    if error_count:
+        raise typer.Exit(code=1)
 
 @app.command("drivers")
 def list_drivers() -> None:
