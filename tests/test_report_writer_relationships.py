@@ -1,0 +1,63 @@
+from legacydb_doctor.models import ColumnInfo, TableInfo
+from legacydb_doctor.report_writer import build_report_frames
+
+
+def col(table_name: str, column_name: str) -> ColumnInfo:
+    return ColumnInfo(
+        table_name=table_name,
+        column_name=column_name,
+        ordinal_position=None,
+        type_name=None,
+        data_type=None,
+        column_size=None,
+        decimal_digits=None,
+        nullable=None,
+    )
+
+
+def test_build_report_frames_includes_potential_relationships_sheet():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            columns=[col("Autor", "SifA"), col("Autor", "Ime")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Naslov",
+            columns=[col("Naslov", "SifN"), col("Naslov", "SifA")],
+            primary_keys=["SifN"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+
+    assert "Potential Relationships" in frames
+
+    df = frames["Potential Relationships"]
+
+    assert len(df) == 1
+    assert df.iloc[0]["Child Table"] == "Naslov"
+    assert df.iloc[0]["Child Column"] == "SifA"
+    assert df.iloc[0]["Parent Table"] == "Autor"
+    assert df.iloc[0]["Parent Column"] == "SifA"
+    assert df.iloc[0]["Confidence"] == "high"
+
+
+def test_build_report_frames_includes_empty_potential_relationships_message():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            columns=[col("Autor", "SifA")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+
+    df = frames["Potential Relationships"]
+
+    assert len(df) == 1
+    assert df.iloc[0]["Reason"] == "No potential relationships detected."
