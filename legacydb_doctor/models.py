@@ -33,3 +33,14 @@ class WarningInfo:
     table_name: str | None
     column_name: str | None
     message: str
+
+
+@dataclass
+class RelationshipInfo:
+    fk_name: str | None
+    parent_table: str | None
+    parent_column: str | None
+    child_table: str | None
+    child_column: str | None
+    update_rule: str | None = None
+    delete_rule: str | None = None

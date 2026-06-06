@@ -8,7 +8,7 @@ import unicodedata
 
 import pyodbc
 
-from .models import ColumnInfo, TableInfo, WarningInfo
+from .models import ColumnInfo, RelationshipInfo, TableInfo, WarningInfo
 from .mysql_mapper import map_access_type_to_mysql
 
 DEFAULT_ACCESS_DRIVER = "Microsoft Access Driver (*.mdb, *.accdb)"
@@ -292,6 +292,23 @@ def profile_columns(conn: pyodbc.Connection, table_name: str, row_count: int | N
         column.filled_count = filled_count
         column.fill_rate_percent = fill_rate_percent
 
+def format_odbc_rule(value: object) -> str | None:
+    if value is None:
+        return None
+
+    rules = {
+        0: "cascade",
+        1: "restrict",
+        2: "set_null",
+        3: "no_action",
+        4: "set_default",
+    }
+
+    try:
+        return rules.get(int(value), str(value))
+    except (TypeError, ValueError):
+        return str(value)
+
 def get_primary_key_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]:
     primary_keys: list[str] = []
 
@@ -324,6 +341,48 @@ def get_unique_index_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str
         return []
 
     return unique_columns
+
+def get_relationships(cursor: pyodbc.Cursor, table_names: list[str]) -> list[RelationshipInfo]:
+    relationships: list[RelationshipInfo] = []
+    seen: set[tuple] = set()
+
+    for table_name in table_names:
+        relationship_rows = []
+
+        for kwargs in (
+            {"table": table_name},
+            {"foreignTable": table_name},
+        ):
+            try:
+                relationship_rows.extend(list(cursor.foreignKeys(**kwargs)))
+            except (pyodbc.Error, UnicodeDecodeError, TypeError):
+                continue
+
+        for row in relationship_rows:
+            parent_table = getattr(row, "pktable_name", None)
+            parent_column = getattr(row, "pkcolumn_name", None)
+            child_table = getattr(row, "fktable_name", None)
+            child_column = getattr(row, "fkcolumn_name", None)
+            fk_name = getattr(row, "fk_name", None)
+
+            key = (fk_name, parent_table, parent_column, child_table, child_column)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            relationships.append(
+                RelationshipInfo(
+                    fk_name=fk_name,
+                    parent_table=parent_table,
+                    parent_column=parent_column,
+                    child_table=child_table,
+                    child_column=child_column,
+                    update_rule=format_odbc_rule(getattr(row, "update_rule", None)),
+                    delete_rule=format_odbc_rule(getattr(row, "delete_rule", None)),
+                )
+            )
+
+    return relationships
 
 def guess_primary_key_candidates(columns: list[ColumnInfo]) -> list[str]:
     candidates: list[str] = []
