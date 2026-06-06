@@ -1,7 +1,5 @@
 import csv
 
-from legacydb_doctor.csv_exporter import filter_table_names, write_export_manifest
-
 from legacydb_doctor.csv_exporter import build_select_sql, filter_table_names, write_export_manifest
 
 def test_write_export_manifest_creates_manifest_for_results(tmp_path):
