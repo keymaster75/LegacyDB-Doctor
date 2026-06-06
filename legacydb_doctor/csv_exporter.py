@@ -12,7 +12,7 @@ def write_export_manifest(results: list[dict], output_dir: Path) -> Path:
     manifest_path = output_dir / "_export_manifest.csv"
 
     with manifest_path.open("w", newline="", encoding="utf-8-sig") as csv_file:
-        fieldnames = ["table", "csv_path", "row_count", "status", "error"]
+        fieldnames = ["table", "csv_path", "row_count", "status", "error", "export_limit"]
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -24,6 +24,7 @@ def write_export_manifest(results: list[dict], output_dir: Path) -> Path:
                     "row_count": item.get("row_count"),
                     "status": item.get("status"),
                     "error": item.get("error"),
+                    "export_limit": item.get("export_limit"),
                 }
             )
 
@@ -123,6 +124,7 @@ def export_access_tables_to_csv(
                             "row_count": 0,
                             "status": "skipped_empty",
                             "error": None,
+                            "export_limit": limit,
                         }
                     )
                     continue
@@ -142,6 +144,7 @@ def export_access_tables_to_csv(
                     "row_count": row_count,
                     "status": "ok" if error is None else "error",
                     "error": error,
+                    "export_limit": limit,
                 }
             )
 

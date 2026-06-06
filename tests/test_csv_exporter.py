@@ -10,6 +10,7 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
             "row_count": 10,
             "status": "ok",
             "error": None,
+            "export_limit": 100,
         },
         {
             "table": "Problem",
@@ -17,6 +18,7 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
             "row_count": None,
             "status": "error",
             "error": "Example error",
+            "export_limit": 100,
         },
         {
             "table": "Razredni",
@@ -24,6 +26,7 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
             "row_count": 0,
             "status": "skipped_empty",
             "error": None,
+            "export_limit": 100,
         },
     ]
 
@@ -44,6 +47,8 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
     assert rows[2]["table"] == "Razredni"
     assert rows[2]["row_count"] == "0"
     assert rows[2]["status"] == "skipped_empty"
+    assert rows[0]["export_limit"] == "100"
+    assert rows[2]["export_limit"] == "100"
 
 def test_write_export_manifest_creates_folder_for_empty_results(tmp_path):
     output_dir = tmp_path / "missing_folder"
