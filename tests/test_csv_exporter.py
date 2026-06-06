@@ -37,6 +37,8 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
     with manifest_path.open("r", encoding="utf-8-sig", newline="") as csv_file:
         rows = list(csv.DictReader(csv_file))
 
+
+
     assert len(rows) == 3
     assert rows[0]["table"] == "Autor"
     assert rows[0]["row_count"] == "10"
@@ -59,8 +61,10 @@ def test_write_export_manifest_creates_folder_for_empty_results(tmp_path):
     assert manifest_path.exists()
 
     with manifest_path.open("r", encoding="utf-8-sig", newline="") as csv_file:
-        rows = list(csv.DictReader(csv_file))
+        reader = csv.DictReader(csv_file)
+        rows = list(reader)
 
+    assert reader.fieldnames == ["table", "csv_path", "row_count", "status", "error", "export_limit"]
     assert rows == []
 
 def test_filter_table_names_returns_all_when_no_filter():
