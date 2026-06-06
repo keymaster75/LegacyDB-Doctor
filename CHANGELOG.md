@@ -31,12 +31,18 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - CSV export dry-run mode with `--manifest-only`.
 - CSV manifest validation for missing files, row-count mismatches, planned exports, skipped empty tables, and required columns.
 - CSV export validation command `validate-csv`.
+- Unit tests for potential relationship detection.
+- Potential relationship count in scan summary.
+- `Potential Relationships` Excel report sheet.
+- Heuristic potential relationship detection for legacy databases without formal foreign keys.
+- Formal Access relationship metadata reader using ODBC and `MSysRelationships` fallback.
 - Unit tests for summary building, identifier suggestions, SQL generation, CLI smoke test, CSV manifest writing, table filtering, and CSV export SQL generation.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
 - Improved generated SQL handling for recommended MySQL-safe identifiers.
 - Improved CSV export documentation and test coverage.
+- Improved Excel migration-readiness report with potential relationship analysis.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.
