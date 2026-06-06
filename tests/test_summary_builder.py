@@ -80,3 +80,45 @@ def test_build_scan_summary_counts_tables_columns_rows_warnings_pk_and_dq():
     assert summary_dict["DQ high"] == 1
     assert summary_dict["DQ medium"] == 0
     assert summary_dict["DQ low"] == 0
+
+def make_column(table_name: str, column_name: str) -> ColumnInfo:
+    return ColumnInfo(
+        table_name=table_name,
+        column_name=column_name,
+        ordinal_position=None,
+        type_name=None,
+        data_type=None,
+        column_size=None,
+        decimal_digits=None,
+        nullable=None,
+    )
+
+
+def test_build_scan_summary_includes_potential_relationship_count():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            row_count=2,
+            columns=[
+                make_column("Autor", "SifA"),
+                make_column("Autor", "Ime"),
+            ],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Naslov",
+            row_count=5,
+            columns=[
+                make_column("Naslov", "SifN"),
+                make_column("Naslov", "SifA"),
+            ],
+            primary_keys=["SifN"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    summary = build_scan_summary(tables, warnings=[])
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Potential relationships"] == 1
