@@ -7,7 +7,7 @@ from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
 from .models import TableInfo, WarningInfo
-from .access_reader import suggest_mysql_identifier
+from .access_reader import guess_potential_relationships, suggest_mysql_identifier
 from .summary_builder import build_data_quality_rows, build_scan_summary
 
 def _autosize_worksheet(ws) -> None:
@@ -68,6 +68,36 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
             for table in tables
         ]
     )
+
+    potential_relationships = guess_potential_relationships(tables)
+
+    potential_relationships_df = pd.DataFrame(
+        [
+            {
+                "Child Table": relationship.child_table,
+                "Child Column": relationship.child_column,
+                "Parent Table": relationship.parent_table,
+                "Parent Column": relationship.parent_column,
+                "Confidence": relationship.confidence,
+                "Reason": relationship.reason,
+            }
+            for relationship in potential_relationships
+        ]
+    )
+
+    if potential_relationships_df.empty:
+        potential_relationships_df = pd.DataFrame(
+            [
+                {
+                    "Child Table": None,
+                    "Child Column": None,
+                    "Parent Table": None,
+                    "Parent Column": None,
+                    "Confidence": "info",
+                    "Reason": "No potential relationships detected.",
+                }
+            ]
+        )
 
     cleanup_rows = []
 
@@ -282,6 +312,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         "Migration Plan": migration_plan_df,
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
+        "Potential Relationships": potential_relationships_df,
         "Cleanup Candidates": cleanup_candidates_df,
         "Data Quality": data_quality_df,
         "Columns": columns_df,

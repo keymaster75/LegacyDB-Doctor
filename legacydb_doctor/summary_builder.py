@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .access_reader import suggest_mysql_identifier
+from .access_reader import guess_potential_relationships, suggest_mysql_identifier
 from .models import TableInfo, WarningInfo
 
 
@@ -59,6 +59,7 @@ def build_scan_summary(tables: list[TableInfo], warnings: list[WarningInfo]) -> 
     dq_high_count = sum(1 for item in data_quality_rows if item["Severity"] == "High")
     dq_medium_count = sum(1 for item in data_quality_rows if item["Severity"] == "Medium")
     dq_low_count = sum(1 for item in data_quality_rows if item["Severity"] == "Low")
+    potential_relationships = guess_potential_relationships(tables)
 
     return [
         {"Metric": "Tables", "Value": len(tables)},
@@ -74,4 +75,5 @@ def build_scan_summary(tables: list[TableInfo], warnings: list[WarningInfo]) -> 
         {"Metric": "DQ high", "Value": dq_high_count},
         {"Metric": "DQ medium", "Value": dq_medium_count},
         {"Metric": "DQ low", "Value": dq_low_count},
+        {"Metric": "Potential relationships", "Value": len(potential_relationships)},
     ]
