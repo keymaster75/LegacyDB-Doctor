@@ -135,6 +135,11 @@ def export_csv(
         min=1,
         help="Export at most N rows per table. Useful for sampling large databases.",
     ),
+    manifest_only: bool = typer.Option(
+        False,
+        "--manifest-only",
+        help="Create only _export_manifest.csv without exporting table CSV files.",
+    ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
         False,
@@ -150,6 +155,12 @@ def export_csv(
         table_filter = [item.strip() for item in tables.split(",") if item.strip()]
         console.print(f"[cyan]Table filter:[/cyan] {', '.join(table_filter)}")
 
+
+    #
+    if manifest_only:
+        console.print("[cyan]Manifest-only mode:[/cyan] CSV files will not be created.")
+    #
+
     try:
         results = export_access_tables_to_csv(
             database_path=database,
@@ -159,6 +170,7 @@ def export_csv(
             table_filter=table_filter,
             skip_empty=skip_empty,
             limit=limit,
+            manifest_only=manifest_only,
         )
     except AccessConnectionError as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
@@ -170,6 +182,8 @@ def export_csv(
 
     skipped_empty_count = sum(1 for item in results if item["status"] == "skipped_empty")
 
+    planned_count = sum(1 for item in results if item["status"] == "planned")
+
     if table_filter and not results:
         console.print("[yellow]No matching tables found for the provided --tables filter.[/yellow]")
 
@@ -177,6 +191,7 @@ def export_csv(
     table.add_column("Metric")
     table.add_column("Value", justify="right")
     table.add_row("Tables exported", str(ok_count))
+    table.add_row("Tables planned", str(planned_count))
     table.add_row("Tables failed", str(error_count))
     table.add_row("Tables skipped empty", str(skipped_empty_count))
     table.add_row("Rows exported", str(total_rows))

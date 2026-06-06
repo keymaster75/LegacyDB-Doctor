@@ -28,6 +28,14 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
             "error": None,
             "export_limit": 100,
         },
+        {
+            "table": "Naslov",
+            "csv_path": None,
+            "row_count": 5,
+            "status": "planned",
+            "error": None,
+            "export_limit": 5,
+        },
     ]
 
     manifest_path = write_export_manifest(results, tmp_path)
@@ -39,7 +47,7 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
 
 
 
-    assert len(rows) == 3
+    assert len(rows) == 4
     assert rows[0]["table"] == "Autor"
     assert rows[0]["row_count"] == "10"
     assert rows[0]["status"] == "ok"
@@ -51,6 +59,10 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
     assert rows[2]["status"] == "skipped_empty"
     assert rows[0]["export_limit"] == "100"
     assert rows[2]["export_limit"] == "100"
+    assert rows[3]["table"] == "Naslov"
+    assert rows[3]["row_count"] == "5"
+    assert rows[3]["status"] == "planned"
+    assert rows[3]["export_limit"] == "5"
 
 def test_write_export_manifest_creates_folder_for_empty_results(tmp_path):
     output_dir = tmp_path / "missing_folder"
