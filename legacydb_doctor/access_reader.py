@@ -216,6 +216,27 @@ def detect_suspicious_table_name(table_name: str) -> WarningInfo | None:
 
     return None
 
+def is_likely_artifact_table_name(table_name: str) -> bool:
+    normalized = table_name.lower().strip()
+
+    artifact_patterns = [
+        "importerrors",
+        "import errors",
+        "copy of",
+        "copy2 of",
+        "kopija",
+        "backup",
+        "_bak",
+        " bak",
+        "staro",
+        "old",
+        "temp",
+        "tmp",
+        "test",
+    ]
+
+    return any(pattern in normalized for pattern in artifact_patterns)
+
 def detect_suspicious_column_name(table_name: str, column_name: str) -> WarningInfo | None:
     suggested_name = suggest_mysql_identifier(column_name)
 
@@ -430,17 +451,31 @@ def normalize_column_match_name(name: str | None) -> str:
     return suggest_mysql_identifier(name)
 
 
-def guess_potential_relationships(tables: list[TableInfo]) -> list[PotentialRelationshipInfo]:
+def guess_potential_relationships(
+    tables: list[TableInfo],
+    include_artifact_tables: bool = False,
+) -> list[PotentialRelationshipInfo]:
     potential_relationships: list[PotentialRelationshipInfo] = []
     seen: set[tuple[str, str, str, str]] = set()
 
     parent_candidates: list[tuple[TableInfo, str, str]] = []
 
     for table in tables:
-        for primary_key in table.primary_keys:
-            parent_candidates.append((table, primary_key, table.primary_key_source))
+        if not include_artifact_tables and is_likely_artifact_table_name(table.table_name):
+            continue
+
+        # Avoid treating junction/composite-key tables as parent tables in the first heuristic pass.
+        # Example: Drzi / Je_Autor often contain multiple FK-like columns and should usually be children.
+        if len(table.primary_keys) != 1:
+            continue
+
+        parent_key = table.primary_keys[0]
+        parent_candidates.append((table, parent_key, table.primary_key_source))
 
     for child_table in tables:
+        if not include_artifact_tables and is_likely_artifact_table_name(child_table.table_name):
+            continue
+
         for child_column in child_table.columns:
             child_column_normalized = normalize_column_match_name(child_column.column_name)
 
@@ -470,10 +505,10 @@ def guess_potential_relationships(tables: list[TableInfo]) -> list[PotentialRela
 
                 if parent_key_source in {"formal", "unique_index"}:
                     confidence = "high"
-                    reason = f"Child column matches parent {parent_key_source} column name."
+                    reason = "Child column matches a single-column parent key."
                 elif parent_key_source == "candidate":
                     confidence = "medium"
-                    reason = "Child column matches parent candidate key column name."
+                    reason = "Child column matches a single-column parent candidate key."
                 else:
                     confidence = "low"
                     reason = "Child column matches parent column name."
