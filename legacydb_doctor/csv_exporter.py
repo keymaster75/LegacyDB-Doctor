@@ -120,23 +120,18 @@ def export_access_tables_to_csv(
             row_count_before_export = count_rows(row_cursor, table_name)
             row_cursor.close()
 
-            if skip_empty:
-                row_cursor = conn.cursor()
-                row_count_before_export = count_rows(row_cursor, table_name)
-                row_cursor.close()
-
-                if skip_empty and row_count_before_export == 0:
-                    results.append(
-                        {
-                            "table": table_name,
-                            "csv_path": None,
-                            "row_count": 0,
-                            "status": "skipped_empty",
-                            "error": None,
-                            "export_limit": limit,
-                        }
-                    )
-                    continue
+            if skip_empty and row_count_before_export == 0:
+                results.append(
+                    {
+                        "table": table_name,
+                        "csv_path": None,
+                        "row_count": 0,
+                        "status": "skipped_empty",
+                        "error": None,
+                        "export_limit": limit,
+                    }
+                )
+                continue
 
             if manifest_only:
                 planned_row_count = row_count_before_export

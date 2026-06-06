@@ -155,11 +155,8 @@ def export_csv(
         table_filter = [item.strip() for item in tables.split(",") if item.strip()]
         console.print(f"[cyan]Table filter:[/cyan] {', '.join(table_filter)}")
 
-
-    #
     if manifest_only:
         console.print("[cyan]Manifest-only mode:[/cyan] CSV files will not be created.")
-    #
 
     try:
         results = export_access_tables_to_csv(

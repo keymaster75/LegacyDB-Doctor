@@ -45,8 +45,6 @@ def test_write_export_manifest_creates_manifest_for_results(tmp_path):
     with manifest_path.open("r", encoding="utf-8-sig", newline="") as csv_file:
         rows = list(csv.DictReader(csv_file))
 
-
-
     assert len(rows) == 4
     assert rows[0]["table"] == "Autor"
     assert rows[0]["row_count"] == "10"
