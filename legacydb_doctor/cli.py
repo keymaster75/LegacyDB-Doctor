@@ -13,6 +13,7 @@ from .csv_exporter import export_access_tables_to_csv
 from .report_writer import write_excel_report
 from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
+
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
 
