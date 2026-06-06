@@ -44,3 +44,6 @@ temp/
 # Local environment/config
 .env
 *.local
+
+# Editor backup files
+*~
