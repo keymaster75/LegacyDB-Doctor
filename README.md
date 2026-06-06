@@ -52,6 +52,8 @@ LegacyDB Doctor can currently:
 - filter CSV export with `--tables`
 - skip empty tables during CSV export with `--skip-empty`
 - limit CSV export rows per table with `--limit`
+- validate CSV export folders against `_export_manifest.csv` with `validate-csv`
+- create CSV export dry-run plans with `--manifest-only`
 
 ---
 
@@ -300,6 +302,24 @@ clan.csv
 
 CSV files are written with `utf-8-sig` encoding so they can be opened more easily in Excel.
 
+### Validate CSV export
+
+Validate an exported CSV folder against `_export_manifest.csv`:
+
+```powershell
+legacydb-doctor validate-csv "C:\Mdb_test\csv"
+```
+
+The validator checks:
+
+- whether `_export_manifest.csv` exists
+- whether exported CSV files listed in the manifest exist
+- whether row counts match the manifest
+- whether `planned` and `skipped_empty` statuses are consistent with no CSV file
+- whether manifest columns required by LegacyDB Doctor are present
+
+For manifest-only export folders, `planned` rows are considered valid when no CSV file is present.
+
 ---
 
 ## Generated SQL
@@ -407,6 +427,7 @@ legacydb-doctor/
     cli.py
     access_reader.py
     csv_exporter.py
+    csv_validator.py
     models.py
     mysql_mapper.py
     report_writer.py

@@ -29,6 +29,8 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - CSV manifest `export_limit` column.
 - CSV manifest `planned` status for manifest-only exports.
 - CSV export dry-run mode with `--manifest-only`.
+- CSV manifest validation for missing files, row-count mismatches, planned exports, skipped empty tables, and required columns.
+- CSV export validation command `validate-csv`.
 - Unit tests for summary building, identifier suggestions, SQL generation, CLI smoke test, CSV manifest writing, table filtering, and CSV export SQL generation.
 
 ### Changed
