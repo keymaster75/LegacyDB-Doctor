@@ -27,6 +27,8 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Empty-table skipping during CSV export with `--skip-empty`.
 - Row-limited CSV export with `--limit`.
 - CSV manifest `export_limit` column.
+- CSV manifest `planned` status for manifest-only exports.
+- CSV export dry-run mode with `--manifest-only`.
 - Unit tests for summary building, identifier suggestions, SQL generation, CLI smoke test, CSV manifest writing, table filtering, and CSV export SQL generation.
 
 ### Changed
