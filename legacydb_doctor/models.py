@@ -44,3 +44,12 @@ class RelationshipInfo:
     child_column: str | None
     update_rule: str | None = None
     delete_rule: str | None = None
+
+@dataclass
+class PotentialRelationshipInfo:
+    child_table: str
+    child_column: str
+    parent_table: str
+    parent_column: str
+    confidence: str
+    reason: str

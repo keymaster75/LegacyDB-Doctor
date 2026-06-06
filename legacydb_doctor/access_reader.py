@@ -8,7 +8,7 @@ import unicodedata
 
 import pyodbc
 
-from .models import ColumnInfo, RelationshipInfo, TableInfo, WarningInfo
+from .models import ColumnInfo, PotentialRelationshipInfo, RelationshipInfo, TableInfo, WarningInfo
 from .mysql_mapper import map_access_type_to_mysql
 
 DEFAULT_ACCESS_DRIVER = "Microsoft Access Driver (*.mdb, *.accdb)"
@@ -383,6 +383,113 @@ def get_relationships(cursor: pyodbc.Cursor, table_names: list[str]) -> list[Rel
             )
 
     return relationships
+
+def get_relationships_from_msys(conn: pyodbc.Connection) -> list[RelationshipInfo]:
+    relationships: list[RelationshipInfo] = []
+
+    sql = """
+        SELECT
+            szRelationship,
+            szObject,
+            szColumn,
+            szReferencedObject,
+            szReferencedColumn
+        FROM MSysRelationships
+    """
+
+    try:
+        cursor = conn.cursor()
+        rows = cursor.execute(sql)
+    except pyodbc.Error:
+        return relationships
+
+    try:
+        for row in rows:
+            relationships.append(
+                RelationshipInfo(
+                    fk_name=getattr(row, "szRelationship", None),
+                    parent_table=getattr(row, "szReferencedObject", None),
+                    parent_column=getattr(row, "szReferencedColumn", None),
+                    child_table=getattr(row, "szObject", None),
+                    child_column=getattr(row, "szColumn", None),
+                    update_rule=None,
+                    delete_rule=None,
+                )
+            )
+    except (pyodbc.Error, UnicodeDecodeError):
+        return relationships
+    finally:
+        cursor.close()
+
+    return relationships
+
+def normalize_column_match_name(name: str | None) -> str:
+    if not name:
+        return ""
+
+    return suggest_mysql_identifier(name)
+
+
+def guess_potential_relationships(tables: list[TableInfo]) -> list[PotentialRelationshipInfo]:
+    potential_relationships: list[PotentialRelationshipInfo] = []
+    seen: set[tuple[str, str, str, str]] = set()
+
+    parent_candidates: list[tuple[TableInfo, str, str]] = []
+
+    for table in tables:
+        for primary_key in table.primary_keys:
+            parent_candidates.append((table, primary_key, table.primary_key_source))
+
+    for child_table in tables:
+        for child_column in child_table.columns:
+            child_column_normalized = normalize_column_match_name(child_column.column_name)
+
+            if not child_column_normalized:
+                continue
+
+            for parent_table, parent_column, parent_key_source in parent_candidates:
+                if child_table.table_name == parent_table.table_name:
+                    continue
+
+                parent_column_normalized = normalize_column_match_name(parent_column)
+
+                if child_column_normalized != parent_column_normalized:
+                    continue
+
+                key = (
+                    child_table.table_name,
+                    child_column.column_name,
+                    parent_table.table_name,
+                    parent_column,
+                )
+
+                if key in seen:
+                    continue
+
+                seen.add(key)
+
+                if parent_key_source in {"formal", "unique_index"}:
+                    confidence = "high"
+                    reason = f"Child column matches parent {parent_key_source} column name."
+                elif parent_key_source == "candidate":
+                    confidence = "medium"
+                    reason = "Child column matches parent candidate key column name."
+                else:
+                    confidence = "low"
+                    reason = "Child column matches parent column name."
+
+                potential_relationships.append(
+                    PotentialRelationshipInfo(
+                        child_table=child_table.table_name,
+                        child_column=child_column.column_name,
+                        parent_table=parent_table.table_name,
+                        parent_column=parent_column,
+                        confidence=confidence,
+                        reason=reason,
+                    )
+                )
+
+    return potential_relationships
 
 def guess_primary_key_candidates(columns: list[ColumnInfo]) -> list[str]:
     candidates: list[str] = []
