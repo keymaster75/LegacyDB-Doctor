@@ -30,11 +30,13 @@ def write_export_manifest(results: list[dict], output_dir: Path) -> Path:
 
     return manifest_path
 
+
 def build_select_sql(table_name: str, limit: int | None = None) -> str:
     if limit is not None and limit > 0:
         return f"SELECT TOP {int(limit)} * FROM {access_identifier(table_name)}"
 
     return f"SELECT * FROM {access_identifier(table_name)}"
+
 
 def export_table_to_csv(
     conn: pyodbc.Connection,
@@ -76,12 +78,14 @@ def export_table_to_csv(
     except Exception as exc:
         return None, None, str(exc)
 
+
 def filter_table_names(table_names: list[str], table_filter: list[str] | None = None) -> list[str]:
     if not table_filter:
         return table_names
 
     wanted = {name.strip().lower() for name in table_filter if name.strip()}
     return [name for name in table_names if name.lower() in wanted]
+
 
 def export_access_tables_to_csv(
     database_path: str | Path,

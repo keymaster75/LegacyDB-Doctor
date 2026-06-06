@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -8,14 +9,10 @@ from rich.console import Console
 from rich.table import Table
 
 from .access_reader import DEFAULT_ACCESS_DRIVER, AccessConnectionError, inspect_access_database
+from .csv_exporter import export_access_tables_to_csv
 from .report_writer import write_excel_report
 from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
-
-import os
-
-from .csv_exporter import export_access_tables_to_csv
-
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
 
@@ -33,6 +30,7 @@ def build_default_output_paths(database: Path, output_dir: Path) -> tuple[Path, 
     schema_path = output_dir / f"{database_stem}_schema.sql"
 
     return report_path, schema_path
+
 
 @app.command()
 def scan(
@@ -115,6 +113,7 @@ def scan(
 
     console.print(summary)
 
+
 @app.command("export-csv")
 def export_csv(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
@@ -193,6 +192,7 @@ def export_csv(
                 error_table.add_row(str(item["table"]), str(item["error"]))
 
         console.print(error_table)
+
 
 @app.command("drivers")
 def list_drivers() -> None:
