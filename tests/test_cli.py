@@ -18,3 +18,11 @@ def test_scan_help_includes_fk_suggestions_option():
     assert result.exit_code == 0
     assert "--fk-suggestions-out" in result.output
 
+
+def test_scan_help_includes_summary_only_and_fk_suggestions_options():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "--summary-only" in result.output
+    assert "--fk-suggestions-out" in result.output
+

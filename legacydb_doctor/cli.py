@@ -112,9 +112,9 @@ def scan(
             else:
                 console.print("[cyan]Schema uses original Access identifiers.[/cyan]")
 
-        if fk_suggestions_out is not None:
-            fk_suggestions_path = write_fk_suggestions_sql(tables, fk_suggestions_out)
-            console.print(f"[green]FK suggestions SQL comments created:[/green] {fk_suggestions_path}")
+    if fk_suggestions_out is not None:
+        fk_suggestions_path = write_fk_suggestions_sql(tables, fk_suggestions_out)
+        console.print(f"[green]FK suggestions SQL comments created:[/green] {fk_suggestions_path}")
 
     summary = Table(title="Scan summary")
     summary.add_column("Metric")
