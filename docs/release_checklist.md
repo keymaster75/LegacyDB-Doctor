@@ -104,12 +104,19 @@ Migration Plan
 Tables
 Primary Keys
 Potential Relationships
+FK Suggestions
 Cleanup Candidates
 Data Quality
 Columns
 Type Mapping
 Warnings
 ```
+
+Confirm that:
+
+- `Potential Relationships` contains heuristic relationship suggestions
+- `FK Suggestions` contains review-only MySQL comment-style FK suggestions
+- `FK Suggestions` does not generate automatic `ALTER TABLE` statements
 
 Open the generated SQL and confirm:
 
@@ -253,6 +260,7 @@ Review:
 README.md
 START_HERE_WINDOWS.md
 CHANGELOG.md
+docs/release_checklist.md
 ```
 
 Check that:
@@ -284,8 +292,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.6-dev -m "Release checklist documentation checkpoint"
-git push origin v0.1.6-dev
+git tag -a v0.1.8-dev -m "Release checklist FK suggestions checkpoint"
+git push origin v0.1.8-dev
 ```
 
 Public release example:
