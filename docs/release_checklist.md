@@ -100,6 +100,7 @@ Review the Excel report sheets:
 
 ```text
 Summary
+Readiness Factors
 Migration Plan
 Tables
 Primary Keys
@@ -118,6 +119,7 @@ Confirm that:
 - `FK Suggestions` contains review-only MySQL comment-style FK suggestions
 - `FK Suggestions` does not generate automatic `ALTER TABLE` statements
 - `Summary` includes Migration readiness score and Migration readiness level
+- `Readiness Factors` explains score factors with impact, severity, message, and recommendation
 
 Open the generated SQL and confirm:
 
@@ -312,6 +314,7 @@ Check that:
 - `--fk-suggestions-out` usage is documented and marked as review-only
 - `--fk-suggestions-out` summary-only behavior is documented
 - Migration Readiness Score is documented as conservative and heuristic
+- `Readiness Factors` sheet is documented in the report sheet list
 - CHANGELOG has an entry for the release checkpoint
 
 ---

@@ -41,6 +41,7 @@ LegacyDB Doctor can currently:
   - candidate key heuristics
 - generate an Excel migration-readiness report
 - calculate a conservative Migration Readiness Score and readiness level
+- explain readiness score factors in the Excel `Readiness Factors` sheet
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -69,6 +70,7 @@ The generated Excel report currently includes:
 | Sheet | Purpose |
 |---|---|
 | `Summary` | Overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
+| `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
 | `Migration Plan` | Recommended action per table: migrate, review, or exclude |
 | `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
 | `Primary Keys` | Primary key / unique index / candidate status per table |
@@ -428,7 +430,7 @@ Readiness levels:
 
 The score is intentionally conservative. It is not an automatic approval or rejection of a migration. It is meant to highlight how much review work may be needed before migration.
 
-The open-source version provides the basic score and readiness level in the scan summary and Excel `Summary` sheet. More detailed readiness explanations, remediation plans, configurable scoring profiles, or exportable assessment reports may be added later.
+The open-source version provides the basic score, readiness level, and an Excel `Readiness Factors` sheet that explains the main score impacts. More advanced remediation plans, configurable scoring profiles, comparison reports, or exportable branded assessment reports may be added later.
 
 ---
 
@@ -655,8 +657,9 @@ For a fuller release preparation workflow, see [docs/release_checklist.md](docs/
 Planned or possible future features:
 
 - configurable scoring profiles
+- scan-to-scan readiness comparison
 - exportable readiness assessment reports
-- detailed readiness factor breakdown
+- remediation plans based on readiness factors
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
 - duplicate value detection for candidate key columns
