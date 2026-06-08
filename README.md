@@ -19,6 +19,8 @@ The project focuses on real-world legacy database problems:
 LegacyDB Doctor does **not** try to blindly convert everything in one click.  
 Its first goal is safer and more transparent migration planning.
 
+Windows users can start with [START_HERE_WINDOWS.md](START_HERE_WINDOWS.md) for a step-by-step setup and first scan guide.
+
 ---
 
 ## Current Features
@@ -71,6 +73,7 @@ The generated Excel report currently includes:
 | `Data Quality` | Columns with low fill rate or completely empty values |
 | `Columns` | Full column inventory with Access types, MySQL types, fill-rate profiling |
 | `Type Mapping` | Access/ODBC type to suggested MySQL type mapping |
+| `Potential Relationships` | Heuristic relationship suggestions for databases without reliable formal foreign keys |
 | `Warnings` | Detailed warnings and informational notes |
 
 ---
@@ -464,6 +467,7 @@ This helps identify columns that may be obsolete, rarely used, or require busine
 ```text
 legacydb-doctor/
   README.md
+  START_HERE_WINDOWS.md
   LICENSE
   CHANGELOG.md
   pyproject.toml
@@ -483,6 +487,7 @@ legacydb-doctor/
   tests/
   examples/
   docs/
+    release_checklist.md
 ```
 
 ---
@@ -544,23 +549,23 @@ git ls-files | findstr /i /r "\.mdb$ \.accdb$ \.xlsx$ \.xls$ \.sql$"
 
 The command should not list real local databases, generated Excel reports, or generated SQL output.
 
+For a fuller release preparation workflow, see [docs/release_checklist.md](docs/release_checklist.md).
+
 ---
 
 ## Roadmap
 
 Planned or possible future features:
 
-- CSV export improvements and validation
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
 - duplicate value detection for candidate key columns
-- relationship / foreign key discovery
+- foreign key suggestion report / SQL comments
 - improved Access index analysis
 - HTML report output
 - sample demo Access database
 - sample screenshots for documentation
 - GUI version
-- migration checklist documentation
 - first public release tag `v0.1.0`
 
 ---
