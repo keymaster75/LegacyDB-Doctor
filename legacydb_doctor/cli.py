@@ -57,7 +57,7 @@ def scan(
     fk_suggestions_out: Optional[Path] = typer.Option(
         None,
         "--fk-suggestions-out",
-        help="Write review-only FK suggestions as SQL comments to the selected file.",
+        help="Write review-only FK suggestions as SQL comments to the selected file. Works with normal scan and --summary-only.",
     ),
     no_schema: bool = typer.Option(
         False,
@@ -68,7 +68,7 @@ def scan(
     summary_only: bool = typer.Option(
         False,
         "--summary-only",
-        help="Only print scan summary; skip Excel report and schema generation.",
+        help="Only print scan summary; skip Excel report and schema generation. Other explicit outputs, such as --fk-suggestions-out, are still created.",
     ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
@@ -91,6 +91,8 @@ def scan(
 
     if summary_only:
         console.print("[yellow]Summary-only mode: Excel report and schema SQL generation skipped.[/yellow]")
+        if fk_suggestions_out is not None:
+            console.print("[cyan]Explicit FK suggestions output requested; it will still be created.[/cyan]")
     else:
         report_path = write_excel_report(tables, warnings, out)
         console.print(f"[green]Excel report created:[/green] {report_path}")
