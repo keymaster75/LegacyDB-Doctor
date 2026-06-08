@@ -1,6 +1,6 @@
-typer>=0.12.0
-rich>=13.0.0
-pyodbc>=5.0.0
-pandas>=2.0.0
-openpyxl>=3.1.0
-pytest
+# Runtime dependencies are defined in pyproject.toml.
+# For normal installation, use:
+#   python -m pip install -e .
+#
+# For development and tests, use:
+#   python -m pip install -e ".[dev]"

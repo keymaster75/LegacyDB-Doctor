@@ -20,6 +20,11 @@ dependencies = [
   "openpyxl>=3.1.0"
 ]
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0"
+]
+
 [project.scripts]
 legacydb-doctor = "legacydb_doctor.cli:app"
 
