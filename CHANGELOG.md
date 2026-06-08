@@ -43,6 +43,10 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Improved generated SQL handling for recommended MySQL-safe identifiers.
 - Improved CSV export documentation and test coverage.
 - Improved Excel migration-readiness report with potential relationship analysis.
+- Improved README setup instructions and Rich-style terminal examples.
+- Documented Windows PowerShell virtual environment activation note.
+- Replaced `requirements.txt` dependency duplication with installation guidance.
+- Moved dependency management to `pyproject.toml` with a `dev` extra for test dependencies.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.
