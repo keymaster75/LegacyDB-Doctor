@@ -43,6 +43,8 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Unit tests for FK Suggestions report generation.
 - Review-only FK suggestions SQL comment export with `--fk-suggestions-out`.
 - Unit tests for FK suggestions SQL comment generation and CLI help option.
+- Unit tests for readiness score summary output.
+- Conservative Migration Readiness Score and readiness level in scan summary.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -57,6 +59,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Documented Windows PowerShell virtual environment activation note.
 - Replaced `requirements.txt` dependency duplication with installation guidance.
 - Moved dependency management to `pyproject.toml` with a `dev` extra for test dependencies.
+- Updated scan summary and Excel Summary sheet to include basic migration readiness indicators.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

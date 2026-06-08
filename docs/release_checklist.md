@@ -79,7 +79,7 @@ Expected:
 
 - command completes without exception
 - scan summary is shown
-- table, column, row, warning, primary key, data-quality, and potential relationship metrics look reasonable
+- table, column, row, warning, migration readiness score, migration readiness level, primary key, data-quality, and potential relationship metrics look reasonable
 
 ---
 
@@ -117,6 +117,7 @@ Confirm that:
 - `Potential Relationships` contains heuristic relationship suggestions
 - `FK Suggestions` contains review-only MySQL comment-style FK suggestions
 - `FK Suggestions` does not generate automatic `ALTER TABLE` statements
+- `Summary` includes Migration readiness score and Migration readiness level
 
 Open the generated SQL and confirm:
 
@@ -310,6 +311,7 @@ Check that:
 - generated report sheet list matches the current Excel output
 - `--fk-suggestions-out` usage is documented and marked as review-only
 - `--fk-suggestions-out` summary-only behavior is documented
+- Migration Readiness Score is documented as conservative and heuristic
 - CHANGELOG has an entry for the release checkpoint
 
 ---
@@ -333,8 +335,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.11-dev -m "FK suggestions summary-only export checkpoint"
-git push origin v0.1.11-dev
+git tag -a v0.1.12-dev -m "Migration readiness score checkpoint"
+git push origin v0.1.12-dev
 ```
 
 Public release example:

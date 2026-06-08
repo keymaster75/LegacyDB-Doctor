@@ -73,6 +73,8 @@ def test_build_scan_summary_counts_tables_columns_rows_warnings_pk_and_dq():
     assert summary_dict["Warnings"] == 1
     assert summary_dict["Info"] == 1
     assert summary_dict["Total notes"] == 2
+    assert summary_dict["Migration readiness score"] == "72 / 100"
+    assert summary_dict["Migration readiness level"] == "Medium"
     assert summary_dict["PK formal"] == 0
     assert summary_dict["PK unique_index"] == 1
     assert summary_dict["PK candidate"] == 0
@@ -122,3 +124,36 @@ def test_build_scan_summary_includes_potential_relationship_count():
     summary_dict = {row["Metric"]: row["Value"] for row in summary}
 
     assert summary_dict["Potential relationships"] == 1
+
+
+def test_build_scan_summary_shows_high_readiness_for_clean_database():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            row_count=10,
+            columns=[
+                make_column("Autor", "SifA"),
+                make_column("Autor", "Ime"),
+            ],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Naslov",
+            row_count=20,
+            columns=[
+                make_column("Naslov", "SifN"),
+                make_column("Naslov", "Naziv"),
+                make_column("Naslov", "SifA"),
+            ],
+            primary_keys=["SifN"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    summary = build_scan_summary(tables, warnings=[])
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Migration readiness score"] == "100 / 100"
+    assert summary_dict["Migration readiness level"] == "High"
+

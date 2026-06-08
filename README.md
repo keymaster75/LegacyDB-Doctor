@@ -40,6 +40,7 @@ LegacyDB Doctor can currently:
   - unique index metadata
   - candidate key heuristics
 - generate an Excel migration-readiness report
+- calculate a conservative Migration Readiness Score and readiness level
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -67,7 +68,7 @@ The generated Excel report currently includes:
 
 | Sheet | Purpose |
 |---|---|
-| `Summary` | Overall database metrics, warning counts, primary key status counts, and data-quality counts |
+| `Summary` | Overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
 | `Migration Plan` | Recommended action per table: migrate, review, or exclude |
 | `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
 | `Primary Keys` | Primary key / unique index / candidate status per table |
@@ -98,6 +99,8 @@ LegacyDB Doctor scanning: C:\Mdb_test\Library.mdb
 │ Warnings                │    60 │
 │ Info                    │   231 │
 │ Total notes             │   291 │
+│ Migration readiness score │ 10 / 100 │
+│ Migration readiness level │ Low │
 │ PK formal               │     0 │
 │ PK unique_index         │    17 │
 │ PK candidate            │     0 │
@@ -402,6 +405,33 @@ For manifest-only export folders, `planned` rows are considered valid when no CS
 
 ---
 
+## Migration Readiness Score
+
+LegacyDB Doctor calculates a conservative migration-readiness score from 0 to 100.
+
+The score is based on explainable heuristics such as:
+
+- tables without detected primary keys or unique indexes
+- possible cleanup/artifact tables
+- empty or low-fill columns
+- migration warnings
+- empty tables
+- missing or weak relationship signals
+
+Readiness levels:
+
+| Score | Level |
+|---|---|
+| 80–100 | High |
+| 50–79 | Medium |
+| 0–49 | Low |
+
+The score is intentionally conservative. It is not an automatic approval or rejection of a migration. It is meant to highlight how much review work may be needed before migration.
+
+The open-source version provides the basic score and readiness level in the scan summary and Excel `Summary` sheet. More detailed readiness explanations, remediation plans, configurable scoring profiles, or exportable assessment reports may be added later.
+
+---
+
 ## Generated SQL
 
 LegacyDB Doctor can generate a starter MySQL schema.
@@ -536,6 +566,7 @@ legacydb-doctor/
     models.py
     mysql_mapper.py
     report_writer.py
+    readiness_score.py
     sql_writer.py
     summary_builder.py
   tests/
@@ -586,6 +617,12 @@ Run scan with normalized MySQL identifiers:
 python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema_recommended.sql" --use-recommended-names
 ```
 
+Run a quick scan and review the basic readiness score:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
 Run scan with review-only FK suggestion comments:
 
 ```powershell
@@ -617,6 +654,9 @@ For a fuller release preparation workflow, see [docs/release_checklist.md](docs/
 
 Planned or possible future features:
 
+- configurable scoring profiles
+- exportable readiness assessment reports
+- detailed readiness factor breakdown
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
 - duplicate value detection for candidate key columns
