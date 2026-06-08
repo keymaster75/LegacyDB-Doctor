@@ -77,27 +77,46 @@ The generated Excel report currently includes:
 
 ## Example Summary
 
-Example terminal output:
+LegacyDB Doctor uses Rich-powered terminal tables for readable scan and validation output:
 
 ```text
-Scan summary
-┏━━━━━━━━━━━━━━━━━┳━━━━━━━┓
-┃ Metric          ┃ Value ┃
-┡━━━━━━━━━━━━━━━━━╇━━━━━━━┩
-│ Tables          │    35 │
-│ Columns         │   248 │
-│ Rows            │ 23340 │
-│ Warnings        │    60 │
-│ Info            │   231 │
-│ Total notes     │   291 │
-│ PK formal       │     0 │
-│ PK unique_index │    17 │
-│ PK candidate    │     0 │
-│ PK none         │    18 │
-│ DQ high         │    63 │
-│ DQ medium       │    13 │
-│ DQ low          │     1 │
-└─────────────────┴───────┘
+LegacyDB Doctor scanning: C:\Mdb_test\Library.mdb
+
+           Scan summary
+┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Metric                  ┃ Value ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ Tables                  │    35 │
+│ Columns                 │   248 │
+│ Rows                    │ 23340 │
+│ Warnings                │    60 │
+│ Info                    │   231 │
+│ Total notes             │   291 │
+│ PK formal               │     0 │
+│ PK unique_index         │    17 │
+│ PK candidate            │     0 │
+│ PK none                 │    18 │
+│ DQ high                 │    63 │
+│ DQ medium               │    13 │
+│ DQ low                  │     1 │
+│ Potential relationships │    10 │
+└─────────────────────────┴───────┘
+```
+
+CSV validation output is also shown as a compact terminal table:
+
+```text
+LegacyDB Doctor validating CSV export: C:\Mdb_test\csv
+
+ CSV validation summary
+┏━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Metric        ┃ Value ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ OK            │    35 │
+│ Warnings      │     0 │
+│ Errors        │     0 │
+│ Checked items │    35 │
+└───────────────┴───────┘
 ```
 
 ---
@@ -127,13 +146,39 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 3. Install dependencies
+### 3. Install LegacyDB Doctor
+
+For normal use:
 
 ```powershell
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
 python -m pip install -e .
 ```
+
+For development and tests:
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+`pyproject.toml` is the main source for runtime and development dependencies.
+
+### Windows PowerShell note
+
+If you get an execution policy error when activating the virtual environment, run:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+```
+
+Then try activating the virtual environment again:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+This changes the execution policy only for the current PowerShell session.
 
 ---
 
@@ -145,12 +190,14 @@ LegacyDB Doctor currently requires:
 - Windows for Access ODBC scanning
 - Microsoft Access ODBC driver:
   - `Microsoft Access Driver (*.mdb, *.accdb)`
-- Python packages:
+- Python runtime packages defined in `pyproject.toml`:
   - `pyodbc`
   - `pandas`
   - `openpyxl`
   - `typer`
   - `rich`
+- Development/test dependency available through the `dev` extra:
+  - `pytest`
 
 To check installed ODBC drivers:
 
@@ -460,10 +507,10 @@ Example current result:
 tests passed
 ```
 
-Check editable package installation and CLI entry point:
+Check editable development installation and CLI entry point:
 
 ```powershell
-python -m pip install -e .
+python -m pip install -e ".[dev]"
 legacydb-doctor --help
 legacydb-doctor drivers
 ```
