@@ -51,6 +51,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Improved Excel migration-readiness report with potential relationship analysis.
 - Extended relationship analysis output with separate review-only FK suggestions.
 - Extended scan outputs with optional FK suggestions SQL comment file generation.
+- Allowed `--fk-suggestions-out` to work together with `--summary-only`.
 - Improved README setup instructions and Rich-style terminal examples.
 - Updated README report sheet list and roadmap to reflect implemented CSV validation and potential relationship reporting.
 - Documented Windows PowerShell virtual environment activation note.

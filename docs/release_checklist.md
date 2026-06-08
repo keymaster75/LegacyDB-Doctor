@@ -146,6 +146,24 @@ Confirm that:
 - file contains confidence and reason comments
 - file does not contain executable `ALTER TABLE` statements
 
+Also test FK suggestions export in summary-only mode:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --fk-suggestions-out "C:\Mdb_test\release_fk_summary_only.sql"
+```
+
+Expected file:
+
+```text
+C:\Mdb_test\release_fk_summary_only.sql
+```
+
+Confirm that:
+
+- summary-only mode skips Excel and schema generation
+- FK suggestions comment file is still created when `--fk-suggestions-out` is provided
+- generated file does not contain executable `ALTER TABLE` statements
+
 ---
 
 ## 8. Test report-only mode
@@ -291,6 +309,7 @@ Check that:
 - implemented features are not still listed as future roadmap items
 - generated report sheet list matches the current Excel output
 - `--fk-suggestions-out` usage is documented and marked as review-only
+- `--fk-suggestions-out` summary-only behavior is documented
 - CHANGELOG has an entry for the release checkpoint
 
 ---
@@ -314,8 +333,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.9-dev -m "FK suggestions SQL export checkpoint"
-git push origin v0.1.9-dev
+git tag -a v0.1.11-dev -m "FK suggestions summary-only export checkpoint"
+git push origin v0.1.11-dev
 ```
 
 Public release example:
