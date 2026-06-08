@@ -10,6 +10,7 @@ from rich.table import Table
 
 from .access_reader import DEFAULT_ACCESS_DRIVER, AccessConnectionError, inspect_access_database
 from .csv_exporter import export_access_tables_to_csv
+from .fk_suggestions_writer import write_fk_suggestions_sql
 from .report_writer import write_excel_report
 from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
@@ -52,6 +53,11 @@ def scan(
         Path("schema.sql"),
         "--schema-out",
         help="Generated MySQL schema output path.",
+    ),
+    fk_suggestions_out: Optional[Path] = typer.Option(
+        None,
+        "--fk-suggestions-out",
+        help="Write review-only FK suggestions as SQL comments to the selected file.",
     ),
     no_schema: bool = typer.Option(
         False,
@@ -105,6 +111,10 @@ def scan(
                 console.print("[cyan]Schema uses recommended MySQL-safe identifiers.[/cyan]")
             else:
                 console.print("[cyan]Schema uses original Access identifiers.[/cyan]")
+
+        if fk_suggestions_out is not None:
+            fk_suggestions_path = write_fk_suggestions_sql(tables, fk_suggestions_out)
+            console.print(f"[green]FK suggestions SQL comments created:[/green] {fk_suggestions_path}")
 
     summary = Table(title="Scan summary")
     summary.add_column("Metric")
