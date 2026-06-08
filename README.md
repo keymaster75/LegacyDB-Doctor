@@ -46,6 +46,7 @@ LegacyDB Doctor can currently:
 - profile column fill rates
 - create a migration plan sheet
 - create cleanup and data-quality sheets
+- create potential relationship and FK suggestion sheets
 - skip SQL generation with `--no-schema` / `--report-only`
 - run summary-only scans with `--summary-only`
 - generate outputs into a selected folder with `--output-dir`
@@ -74,6 +75,7 @@ The generated Excel report currently includes:
 | `Columns` | Full column inventory with Access types, MySQL types, fill-rate profiling |
 | `Type Mapping` | Access/ODBC type to suggested MySQL type mapping |
 | `Potential Relationships` | Heuristic relationship suggestions for databases without reliable formal foreign keys |
+| `FK Suggestions` | MySQL comment-style foreign key suggestions derived from potential relationships; review-only, no automatic `ALTER TABLE` generation |
 | `Warnings` | Detailed warnings and informational notes |
 
 ---
@@ -423,6 +425,28 @@ It does not pretend that a unique index is always a formal primary key.
 
 ---
 
+## Potential Relationships and FK Suggestions
+
+Many legacy Access databases do not expose reliable formal relationship metadata through ODBC.
+
+LegacyDB Doctor therefore includes two review-only report sheets:
+
+| Sheet | Meaning |
+|---|---|
+| `Potential Relationships` | Detected possible child-to-parent relationships based on matching child columns to single-column parent keys |
+| `FK Suggestions` | MySQL comment-style foreign key suggestions derived from potential relationships |
+
+Example FK suggestion:
+
+```sql
+-- FK suggestion: `naslov`.`sif_a` may reference `autor`.`sif_a`
+```
+
+These suggestions are intentionally **not** generated as automatic `ALTER TABLE` statements.  
+They should be reviewed by a developer or database owner before any real foreign keys are created.
+
+---
+
 ## Cleanup Candidate Detection
 
 LegacyDB Doctor flags tables that may need review before migration, such as:
@@ -560,7 +584,7 @@ Planned or possible future features:
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
 - duplicate value detection for candidate key columns
-- foreign key suggestion report / SQL comments
+- optional reviewed foreign key DDL generation
 - improved Access index analysis
 - HTML report output
 - sample demo Access database

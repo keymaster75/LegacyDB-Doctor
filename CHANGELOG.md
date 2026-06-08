@@ -39,12 +39,15 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Unit tests for summary building, identifier suggestions, SQL generation, CLI smoke test, CSV manifest writing, table filtering, and CSV export SQL generation.
 - Windows quick start guide (`START_HERE_WINDOWS.md`) with setup, first scan, CSV export, and validation workflow.
 - README link to the Windows quick start guide.
+- `FK Suggestions` Excel report sheet with review-only MySQL comment-style foreign key suggestions.
+- Unit tests for FK Suggestions report generation.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
 - Improved generated SQL handling for recommended MySQL-safe identifiers.
 - Improved CSV export documentation and test coverage.
 - Improved Excel migration-readiness report with potential relationship analysis.
+- Extended relationship analysis output with separate review-only FK suggestions.
 - Improved README setup instructions and Rich-style terminal examples.
 - Updated README report sheet list and roadmap to reflect implemented CSV validation and potential relationship reporting.
 - Documented Windows PowerShell virtual environment activation note.
