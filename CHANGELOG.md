@@ -37,6 +37,8 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Heuristic potential relationship detection for legacy databases without formal foreign keys.
 - Formal Access relationship metadata reader using ODBC and `MSysRelationships` fallback.
 - Unit tests for summary building, identifier suggestions, SQL generation, CLI smoke test, CSV manifest writing, table filtering, and CSV export SQL generation.
+- Windows quick start guide (`START_HERE_WINDOWS.md`) with setup, first scan, CSV export, and validation workflow.
+- README link to the Windows quick start guide.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -44,6 +46,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Improved CSV export documentation and test coverage.
 - Improved Excel migration-readiness report with potential relationship analysis.
 - Improved README setup instructions and Rich-style terminal examples.
+- Updated README report sheet list and roadmap to reflect implemented CSV validation and potential relationship reporting.
 - Documented Windows PowerShell virtual environment activation note.
 - Replaced `requirements.txt` dependency duplication with installation guidance.
 - Moved dependency management to `pyproject.toml` with a `dev` extra for test dependencies.
