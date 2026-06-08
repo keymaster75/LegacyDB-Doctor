@@ -127,7 +127,28 @@ Open the generated SQL and confirm:
 
 ---
 
-## 7. Test report-only mode
+## 7. Test FK suggestions SQL comment export
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_fk_sql" --use-recommended-names --fk-suggestions-out "C:\Mdb_test\release_fk_sql\fk_suggestions.sql"
+```
+
+Expected file:
+
+```text
+C:\Mdb_test\release_fk_sql\fk_suggestions.sql
+```
+
+Confirm that:
+
+- file starts with LegacyDB Doctor header comments
+- file contains review-only FK suggestions
+- file contains confidence and reason comments
+- file does not contain executable `ALTER TABLE` statements
+
+---
+
+## 8. Test report-only mode
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_report_only" --report-only
@@ -140,7 +161,7 @@ Expected:
 
 ---
 
-## 8. Test CSV export
+## 9. Test CSV export
 
 ```powershell
 legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_csv" --use-recommended-names
@@ -154,7 +175,7 @@ Expected:
 
 ---
 
-## 9. Test CSV validation
+## 10. Test CSV validation
 
 ```powershell
 legacydb-doctor validate-csv "C:\Mdb_test\release_csv"
@@ -170,7 +191,7 @@ Warnings should be reviewed if present.
 
 ---
 
-## 10. Test limited CSV export
+## 11. Test limited CSV export
 
 ```powershell
 legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_csv_sample" --limit 5 --use-recommended-names
@@ -185,7 +206,7 @@ Expected:
 
 ---
 
-## 11. Test manifest-only CSV plan
+## 12. Test manifest-only CSV plan
 
 ```powershell
 legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_csv_plan" --manifest-only
@@ -200,7 +221,7 @@ Expected:
 
 ---
 
-## 12. Build the Python package
+## 13. Build the Python package
 
 Install build tooling if needed:
 
@@ -223,7 +244,7 @@ dist\legacydb_doctor-<version>-py3-none-any.whl
 
 ---
 
-## 13. Check Git safety
+## 14. Check Git safety
 
 Confirm that private databases or generated outputs are not tracked:
 
@@ -252,7 +273,7 @@ No output.
 
 ---
 
-## 14. Confirm documentation
+## 15. Confirm documentation
 
 Review:
 
@@ -269,11 +290,12 @@ Check that:
 - Windows quick start is current
 - implemented features are not still listed as future roadmap items
 - generated report sheet list matches the current Excel output
+- `--fk-suggestions-out` usage is documented and marked as review-only
 - CHANGELOG has an entry for the release checkpoint
 
 ---
 
-## 15. Final clean status
+## 16. Final clean status
 
 ```powershell
 git status
@@ -287,13 +309,13 @@ nothing to commit, working tree clean
 
 ---
 
-## 16. Create release tag
+## 17. Create release tag
 
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.8-dev -m "Release checklist FK suggestions checkpoint"
-git push origin v0.1.8-dev
+git tag -a v0.1.9-dev -m "FK suggestions SQL export checkpoint"
+git push origin v0.1.9-dev
 ```
 
 Public release example:
