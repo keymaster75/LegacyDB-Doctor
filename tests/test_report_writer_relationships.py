@@ -1,4 +1,4 @@
-from legacydb_doctor.models import ColumnInfo, TableInfo
+from legacydb_doctor.models import ColumnInfo, TableInfo, WarningInfo
 from legacydb_doctor.report_writer import build_report_frames
 
 
@@ -113,4 +113,44 @@ def test_build_report_frames_includes_empty_fk_suggestions_message():
 
     assert len(df) == 1
     assert df.iloc[0]["Reason"] == "No FK suggestions generated."
+
+
+def test_build_report_frames_includes_readiness_factors_sheet():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            row_count=10,
+            columns=[col("Autor", "SifA"), col("Autor", "Ime")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Problem",
+            row_count=0,
+            columns=[],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+    ]
+    warnings = [
+        WarningInfo(
+            level="warning",
+            table_name="Problem",
+            column_name=None,
+            message="No primary key detected.",
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=warnings)
+
+    assert "Readiness Factors" in frames
+
+    df = frames["Readiness Factors"]
+
+    assert list(df.columns) == ["Factor", "Impact", "Severity", "Message", "Recommendation"]
+    assert df.iloc[0]["Factor"] == "Overall readiness"
+    assert df.iloc[0]["Severity"] == "Medium"
+    assert "conservative planning indicator" in df.iloc[0]["Recommendation"]
+    assert "Tables without primary key or unique index" in set(df["Factor"])
+    assert "Migration warnings" in set(df["Factor"])
 

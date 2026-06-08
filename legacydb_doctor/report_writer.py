@@ -9,6 +9,7 @@ from openpyxl.utils import get_column_letter
 from .models import TableInfo, WarningInfo
 from .access_reader import guess_potential_relationships, suggest_mysql_identifier
 from .summary_builder import build_data_quality_rows, build_scan_summary
+from .readiness_score import calculate_migration_readiness_score
 
 def _autosize_worksheet(ws) -> None:
     for column_cells in ws.columns:
@@ -47,9 +48,49 @@ def build_fk_suggestion_sql(
     )
 
 
+
+def build_readiness_factors_rows(tables: list[TableInfo], warnings: list[WarningInfo]) -> list[dict]:
+    readiness_score = calculate_migration_readiness_score(tables, warnings)
+
+    rows = [
+        {
+            "Factor": "Overall readiness",
+            "Impact": readiness_score.score,
+            "Severity": readiness_score.level,
+            "Message": readiness_score.summary,
+            "Recommendation": "Use this score as a conservative planning indicator, not as automatic migration approval.",
+        }
+    ]
+
+    for factor in readiness_score.factors:
+        rows.append(
+            {
+                "Factor": factor.name,
+                "Impact": factor.impact,
+                "Severity": factor.severity,
+                "Message": factor.message,
+                "Recommendation": factor.recommendation,
+            }
+        )
+
+    if not readiness_score.factors:
+        rows.append(
+            {
+                "Factor": "No major readiness penalties",
+                "Impact": 0,
+                "Severity": "Info",
+                "Message": "No major readiness penalties were detected by the current heuristic model.",
+                "Recommendation": "Continue normal migration review before production use.",
+            }
+        )
+
+    return rows
+
+
 def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) -> dict[str, pd.DataFrame]:
     data_quality_rows = build_data_quality_rows(tables)
     summary_df = pd.DataFrame(build_scan_summary(tables, warnings))
+    readiness_factors_df = pd.DataFrame(build_readiness_factors_rows(tables, warnings))
 
     tables_df = pd.DataFrame(
         [
@@ -362,6 +403,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
 
     return {
         "Summary": summary_df,
+        "Readiness Factors": readiness_factors_df,
         "Migration Plan": migration_plan_df,
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
