@@ -170,12 +170,33 @@ Migration Plan
 Cleanup Candidates
 Primary Keys
 Potential Relationships
+FK Suggestions
 Warnings
 ```
 
 ---
 
-## 7. Export Access tables to CSV
+## 7. Export FK suggestions as SQL comments
+
+LegacyDB Doctor can also export review-only FK suggestions to a separate `.sql` file.
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\out" --use-recommended-names --fk-suggestions-out "C:\Mdb_test\out\fk_suggestions.sql"
+```
+
+The generated file contains SQL comments only, for example:
+
+```sql
+-- FK suggestion: `drzi`.`sif_n` may reference `naslov`.`sif_n`
+-- Confidence: high
+-- Reason: Child column matches a single-column parent key.
+```
+
+It does not contain executable `ALTER TABLE` statements.
+
+---
+
+## 8. Export Access tables to CSV
 
 Export all user tables:
 
@@ -209,7 +230,7 @@ legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\c
 
 ---
 
-## 8. Validate CSV export
+## 9. Validate CSV export
 
 After exporting CSV files, validate the folder:
 
@@ -226,7 +247,7 @@ The validator checks:
 
 ---
 
-## 9. Run tests before changing code
+## 10. Run tests before changing code
 
 For developers:
 
@@ -238,7 +259,7 @@ A clean result means the current development checkpoint is stable.
 
 ---
 
-## 10. Before sharing or publishing
+## 11. Before sharing or publishing
 
 Check that real databases and generated reports are not accidentally tracked by Git:
 
@@ -269,5 +290,7 @@ legacydb-doctor validate-csv "C:\Mdb_test\csv"
 ## Important note
 
 Always review generated SQL before using it in production.
+
+FK suggestion exports are review-only comment files and do not contain executable `ALTER TABLE` statements.
 
 LegacyDB Doctor is a migration-readiness and validation tool. Its goal is to help you understand the legacy database before migration.
