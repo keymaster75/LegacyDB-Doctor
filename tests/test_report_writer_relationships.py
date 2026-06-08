@@ -61,3 +61,56 @@ def test_build_report_frames_includes_empty_potential_relationships_message():
 
     assert len(df) == 1
     assert df.iloc[0]["Reason"] == "No potential relationships detected."
+
+
+def test_build_report_frames_includes_fk_suggestions_sheet():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            columns=[col("Autor", "SifA"), col("Autor", "Ime")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Naslov",
+            columns=[col("Naslov", "SifN"), col("Naslov", "SifA")],
+            primary_keys=["SifN"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+
+    assert "FK Suggestions" in frames
+
+    df = frames["FK Suggestions"]
+
+    assert len(df) == 1
+    assert df.iloc[0]["Child Table"] == "Naslov"
+    assert df.iloc[0]["Child Column"] == "SifA"
+    assert df.iloc[0]["Parent Table"] == "Autor"
+    assert df.iloc[0]["Parent Column"] == "SifA"
+    assert df.iloc[0]["Confidence"] == "high"
+    assert (
+        df.iloc[0]["Suggestion"]
+        == "-- FK suggestion: `naslov`.`sif_a` may reference `autor`.`sif_a`"
+    )
+
+
+def test_build_report_frames_includes_empty_fk_suggestions_message():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            columns=[col("Autor", "SifA")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+
+    df = frames["FK Suggestions"]
+
+    assert len(df) == 1
+    assert df.iloc[0]["Reason"] == "No FK suggestions generated."
+

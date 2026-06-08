@@ -29,6 +29,24 @@ def _style_worksheet(ws) -> None:
     ws.freeze_panes = "A2"
     _autosize_worksheet(ws)
 
+
+def build_fk_suggestion_sql(
+    child_table: str,
+    child_column: str,
+    parent_table: str,
+    parent_column: str,
+) -> str:
+    child_table_mysql = suggest_mysql_identifier(child_table)
+    child_column_mysql = suggest_mysql_identifier(child_column)
+    parent_table_mysql = suggest_mysql_identifier(parent_table)
+    parent_column_mysql = suggest_mysql_identifier(parent_column)
+
+    return (
+        f"-- FK suggestion: `{child_table_mysql}`.`{child_column_mysql}` "
+        f"may reference `{parent_table_mysql}`.`{parent_column_mysql}`"
+    )
+
+
 def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) -> dict[str, pd.DataFrame]:
     data_quality_rows = build_data_quality_rows(tables)
     summary_df = pd.DataFrame(build_scan_summary(tables, warnings))
@@ -95,6 +113,41 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
                     "Parent Column": None,
                     "Confidence": "info",
                     "Reason": "No potential relationships detected.",
+                }
+            ]
+        )
+
+    fk_suggestions_df = pd.DataFrame(
+        [
+            {
+                "Child Table": relationship.child_table,
+                "Child Column": relationship.child_column,
+                "Parent Table": relationship.parent_table,
+                "Parent Column": relationship.parent_column,
+                "Confidence": relationship.confidence,
+                "Suggestion": build_fk_suggestion_sql(
+                    relationship.child_table,
+                    relationship.child_column,
+                    relationship.parent_table,
+                    relationship.parent_column,
+                ),
+                "Reason": relationship.reason,
+            }
+            for relationship in potential_relationships
+        ]
+    )
+
+    if fk_suggestions_df.empty:
+        fk_suggestions_df = pd.DataFrame(
+            [
+                {
+                    "Child Table": None,
+                    "Child Column": None,
+                    "Parent Table": None,
+                    "Parent Column": None,
+                    "Confidence": "info",
+                    "Suggestion": None,
+                    "Reason": "No FK suggestions generated.",
                 }
             ]
         )
@@ -313,6 +366,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
         "Potential Relationships": potential_relationships_df,
+        "FK Suggestions": fk_suggestions_df,
         "Cleanup Candidates": cleanup_candidates_df,
         "Data Quality": data_quality_df,
         "Columns": columns_df,
