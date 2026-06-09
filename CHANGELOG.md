@@ -49,6 +49,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - `Migration Checklist` Excel report sheet with area, status, finding, recommended action, and related sheet.
 - Table convertability status and reason in the `Migration Plan` Excel sheet.
 - CLI `--readiness-details` option for printing migration readiness factor details in the terminal.
+- Scan metadata in terminal and Excel Summary output, including database file, database name, database size, and scan timestamp.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -68,6 +69,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended Excel report with a high-level migration action checklist.
 - Extended `Migration Plan` with table-level `Ready`, `Review`, `Exclude`, and `Blocked` convertability statuses.
 - Extended scan summary workflow with optional terminal readiness factor details.
+- Extended scan summary and Excel Summary sheet with database file metadata for better auditability.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

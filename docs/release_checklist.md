@@ -79,6 +79,7 @@ Expected:
 
 - command completes without exception
 - scan summary is shown
+- scan summary includes `Database file`, `Database name`, `Database size MB`, and `Scan timestamp`
 - table, column, row, warning, migration readiness score, migration readiness level, primary key, data-quality, and potential relationship metrics look reasonable
 
 Also test terminal readiness factor details:
@@ -133,6 +134,7 @@ Confirm that:
 - `FK Suggestions` contains review-only MySQL comment-style FK suggestions
 - `FK Suggestions` does not generate automatic `ALTER TABLE` statements
 - `Summary` includes Migration readiness score and Migration readiness level
+- `Summary` includes database file, database name, database size, and scan timestamp
 - `Readiness Factors` explains score factors with impact, severity, message, and recommendation
 - `Migration Checklist` includes action areas such as Readiness score, Primary keys, Data quality, Cleanup, Relationships, Warnings, and Schema
 - `Migration Plan` includes `Convertability Status` and `Convertability Reason` columns
@@ -332,6 +334,7 @@ Check that:
 - `--fk-suggestions-out` summary-only behavior is documented
 - Migration Readiness Score is documented as conservative and heuristic
 - `--readiness-details` usage is documented
+- scan metadata fields are documented
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
 - table convertability statuses are documented
@@ -358,8 +361,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.15-dev -m "Readiness details CLI checkpoint"
-git push origin v0.1.15-dev
+git tag -a v0.1.16-dev -m "Scan metadata summary checkpoint"
+git push origin v0.1.16-dev
 ```
 
 Public release example:

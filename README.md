@@ -45,6 +45,7 @@ LegacyDB Doctor can currently:
 - create a high-level Excel `Migration Checklist` action plan
 - add table-level convertability status and reason to the Excel `Migration Plan` sheet
 - print readiness score factor details in the terminal with `--readiness-details`
+- include scan metadata in terminal and Excel Summary output: database file, database name, database size, and scan timestamp
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -72,7 +73,7 @@ The generated Excel report currently includes:
 
 | Sheet | Purpose |
 |---|---|
-| `Summary` | Overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
+| `Summary` | Scan metadata, overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
 | `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
 | `Migration Checklist` | High-level action checklist with area, status, finding, recommended action, and related sheet |
 | `Migration Plan` | Recommended action per table with convertability status, reason, migration recommendation, and suggested action |
@@ -99,6 +100,10 @@ LegacyDB Doctor scanning: C:\Mdb_test\Library.mdb
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
 ┃ Metric                  ┃ Value ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ Database file           │ C:\Mdb_test\Library.mdb │
+│ Database name           │ Library.mdb │
+│ Database size MB        │ 0.42 │
+│ Scan timestamp          │ 2026-06-09T20:15:30 │
 │ Tables                  │    35 │
 │ Columns                 │   248 │
 │ Rows                    │ 23340 │
@@ -117,6 +122,19 @@ LegacyDB Doctor scanning: C:\Mdb_test\Library.mdb
 │ Potential relationships │    10 │
 └─────────────────────────┴───────┘
 ```
+
+### Scan metadata
+
+The terminal summary and Excel `Summary` sheet include basic scan metadata:
+
+| Metric | Meaning |
+|---|---|
+| `Database file` | Full database path used for the scan |
+| `Database name` | Database file name |
+| `Database size MB` | Database file size in megabytes |
+| `Scan timestamp` | Local timestamp when the scan summary was generated |
+
+This makes generated reports easier to trace, compare, and archive.
 
 CSV validation output is also shown as a compact terminal table:
 
@@ -678,6 +696,14 @@ Run a full scan and review the Excel migration checklist:
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\migration_checklist_test" --use-recommended-names
 ```
+
+Run a quick scan and review scan metadata:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
+The summary should include `Database file`, `Database name`, `Database size MB`, and `Scan timestamp`.
 
 Run a quick scan and review the basic readiness score:
 
