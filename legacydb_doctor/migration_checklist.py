@@ -206,6 +206,16 @@ def build_migration_checklist_rows(tables: list[TableInfo], warnings: list[Warni
 
     rows.append(
         {
+            "Area": "CSV export readiness",
+            "Status": "Info",
+            "Finding": "CSV export with manifest and validation is available.",
+            "Recommended Action": "Use export-csv and validate-csv before importing data into MySQL.",
+            "Related Sheet": "_export_manifest.csv / validate-csv",
+        }
+    )
+
+    rows.append(
+        {
             "Area": "Schema",
             "Status": "Info",
             "Finding": "Starter MySQL schema can be generated for review.",

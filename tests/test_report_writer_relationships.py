@@ -193,6 +193,7 @@ def test_build_report_frames_includes_migration_checklist_sheet():
     assert "Data quality" in set(df["Area"])
     assert "Cleanup" in set(df["Area"])
     assert "Warnings" in set(df["Area"])
+    assert "CSV export readiness" in set(df["Area"])
 
     primary_keys_row = df[df["Area"] == "Primary keys"].iloc[0]
     assert primary_keys_row["Status"] == "Fail"
@@ -200,6 +201,12 @@ def test_build_report_frames_includes_migration_checklist_sheet():
 
     readiness_row = df[df["Area"] == "Readiness score"].iloc[0]
     assert readiness_row["Related Sheet"] == "Readiness Factors"
+
+    csv_row = df[df["Area"] == "CSV export readiness"].iloc[0]
+    assert csv_row["Status"] == "Info"
+    assert "export-csv" in csv_row["Recommended Action"]
+    assert "validate-csv" in csv_row["Recommended Action"]
+    assert csv_row["Related Sheet"] == "_export_manifest.csv / validate-csv"
 
 
 def test_build_report_frames_adds_convertability_columns_to_migration_plan():
