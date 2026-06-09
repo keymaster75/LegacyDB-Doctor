@@ -122,6 +122,8 @@ Confirm that:
 - `Summary` includes Migration readiness score and Migration readiness level
 - `Readiness Factors` explains score factors with impact, severity, message, and recommendation
 - `Migration Checklist` includes action areas such as Readiness score, Primary keys, Data quality, Cleanup, Relationships, Warnings, and Schema
+- `Migration Plan` includes `Convertability Status` and `Convertability Reason` columns
+- convertability statuses include expected values such as `Ready`, `Review`, `Exclude`, and `Blocked`
 
 Open the generated SQL and confirm:
 
@@ -318,6 +320,7 @@ Check that:
 - Migration Readiness Score is documented as conservative and heuristic
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
+- table convertability statuses are documented
 - CHANGELOG has an entry for the release checkpoint
 
 ---
@@ -341,8 +344,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.13-dev -m "Migration checklist checkpoint"
-git push origin v0.1.13-dev
+git tag -a v0.1.14-dev -m "Table convertability status checkpoint"
+git push origin v0.1.14-dev
 ```
 
 Public release example:

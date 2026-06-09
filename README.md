@@ -43,6 +43,7 @@ LegacyDB Doctor can currently:
 - calculate a conservative Migration Readiness Score and readiness level
 - explain readiness score factors in the Excel `Readiness Factors` sheet
 - create a high-level Excel `Migration Checklist` action plan
+- add table-level convertability status and reason to the Excel `Migration Plan` sheet
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -73,7 +74,7 @@ The generated Excel report currently includes:
 | `Summary` | Overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
 | `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
 | `Migration Checklist` | High-level action checklist with area, status, finding, recommended action, and related sheet |
-| `Migration Plan` | Recommended action per table: migrate, review, or exclude |
+| `Migration Plan` | Recommended action per table with convertability status, reason, migration recommendation, and suggested action |
 | `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
 | `Primary Keys` | Primary key / unique index / candidate status per table |
 | `Cleanup Candidates` | Tables that should be reviewed before migration |
@@ -530,6 +531,25 @@ They should be reviewed by a developer or database owner before any real foreign
 
 ---
 
+## Table Convertability Status
+
+The `Migration Plan` sheet includes table-level convertability guidance.
+
+Each table receives a conservative status:
+
+| Status | Meaning |
+|---|---|
+| `Ready` | Table looks structurally ready for migration based on current checks |
+| `Review` | Table may be valid, but requires manual review before migration |
+| `Exclude` | Table looks like an import-error, copy, backup, temporary, test, or old table |
+| `Blocked` | Table has rows but no detected primary key, unique index, or candidate key |
+
+The report also includes a `Convertability Reason` column that explains why the status was assigned.
+
+This status is intended as migration planning guidance. It should not be treated as an automatic migration decision.
+
+---
+
 ## Cleanup Candidate Detection
 
 LegacyDB Doctor flags tables that may need review before migration, such as:
@@ -584,6 +604,7 @@ legacydb-doctor/
     __main__.py
     cli.py
     access_reader.py
+    convertability.py
     csv_exporter.py
     csv_validator.py
     fk_suggestions_writer.py
@@ -686,6 +707,7 @@ For a fuller release preparation workflow, see [docs/release_checklist.md](docs/
 Planned or possible future features:
 
 - configurable scoring profiles
+- configurable convertability rules
 - scan-to-scan readiness comparison
 - exportable readiness assessment reports
 - remediation plans based on readiness factors
