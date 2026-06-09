@@ -10,6 +10,7 @@ from .models import TableInfo, WarningInfo
 from .access_reader import guess_potential_relationships, suggest_mysql_identifier
 from .summary_builder import build_data_quality_rows, build_scan_summary
 from .readiness_score import calculate_migration_readiness_score
+from .migration_checklist import build_migration_checklist_rows
 
 def _autosize_worksheet(ws) -> None:
     for column_cells in ws.columns:
@@ -91,6 +92,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     data_quality_rows = build_data_quality_rows(tables)
     summary_df = pd.DataFrame(build_scan_summary(tables, warnings))
     readiness_factors_df = pd.DataFrame(build_readiness_factors_rows(tables, warnings))
+    migration_checklist_df = pd.DataFrame(build_migration_checklist_rows(tables, warnings))
 
     tables_df = pd.DataFrame(
         [
@@ -404,6 +406,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     return {
         "Summary": summary_df,
         "Readiness Factors": readiness_factors_df,
+        "Migration Checklist": migration_checklist_df,
         "Migration Plan": migration_plan_df,
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,

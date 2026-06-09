@@ -154,3 +154,50 @@ def test_build_report_frames_includes_readiness_factors_sheet():
     assert "Tables without primary key or unique index" in set(df["Factor"])
     assert "Migration warnings" in set(df["Factor"])
 
+
+def test_build_report_frames_includes_migration_checklist_sheet():
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            row_count=10,
+            columns=[col("Autor", "SifA"), col("Autor", "Ime")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Problem",
+            row_count=0,
+            columns=[],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+    ]
+    warnings = [
+        WarningInfo(
+            level="warning",
+            table_name="Problem",
+            column_name=None,
+            message="No primary key detected.",
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=warnings)
+
+    assert "Migration Checklist" in frames
+
+    df = frames["Migration Checklist"]
+
+    assert list(df.columns) == ["Area", "Status", "Finding", "Recommended Action", "Related Sheet"]
+    assert "Readiness score" in set(df["Area"])
+    assert "Primary keys" in set(df["Area"])
+    assert "Data quality" in set(df["Area"])
+    assert "Cleanup" in set(df["Area"])
+    assert "Warnings" in set(df["Area"])
+
+    primary_keys_row = df[df["Area"] == "Primary keys"].iloc[0]
+    assert primary_keys_row["Status"] == "Fail"
+    assert "no detected primary key" in primary_keys_row["Finding"]
+
+    readiness_row = df[df["Area"] == "Readiness score"].iloc[0]
+    assert readiness_row["Related Sheet"] == "Readiness Factors"
+
