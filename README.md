@@ -42,6 +42,7 @@ LegacyDB Doctor can currently:
 - generate an Excel migration-readiness report
 - calculate a conservative Migration Readiness Score and readiness level
 - explain readiness score factors in the Excel `Readiness Factors` sheet
+- create a high-level Excel `Migration Checklist` action plan
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -71,6 +72,7 @@ The generated Excel report currently includes:
 |---|---|
 | `Summary` | Overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
 | `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
+| `Migration Checklist` | High-level action checklist with area, status, finding, recommended action, and related sheet |
 | `Migration Plan` | Recommended action per table: migrate, review, or exclude |
 | `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
 | `Primary Keys` | Primary key / unique index / candidate status per table |
@@ -434,6 +436,26 @@ The open-source version provides the basic score, readiness level, and an Excel 
 
 ---
 
+## Migration Checklist
+
+The Excel report includes a high-level `Migration Checklist` sheet.
+
+This sheet summarizes the main migration preparation areas into an action-oriented format:
+
+| Column | Meaning |
+|---|---|
+| `Area` | Migration area being reviewed, such as readiness score, primary keys, data quality, cleanup, relationships, warnings, or schema |
+| `Status` | `OK`, `Warning`, `Fail`, or `Info` |
+| `Finding` | Short explanation of the detected issue or status |
+| `Recommended Action` | Practical next step before migration |
+| `Related Sheet` | Detailed sheet or output file where the user can review the underlying evidence |
+
+The checklist is intended as a practical first-page action plan. It does not replace manual review, but it helps users decide where to look first.
+
+In the open-source version, the checklist is generated as a static Excel sheet. A future advanced/pro workflow may add tracked remediation status, project notes, responsible persons, branded reports, or scan-to-scan progress tracking.
+
+---
+
 ## Generated SQL
 
 LegacyDB Doctor can generate a starter MySQL schema.
@@ -565,6 +587,7 @@ legacydb-doctor/
     csv_exporter.py
     csv_validator.py
     fk_suggestions_writer.py
+    migration_checklist.py
     models.py
     mysql_mapper.py
     report_writer.py
@@ -619,6 +642,12 @@ Run scan with normalized MySQL identifiers:
 python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema_recommended.sql" --use-recommended-names
 ```
 
+Run a full scan and review the Excel migration checklist:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\migration_checklist_test" --use-recommended-names
+```
+
 Run a quick scan and review the basic readiness score:
 
 ```powershell
@@ -660,6 +689,7 @@ Planned or possible future features:
 - scan-to-scan readiness comparison
 - exportable readiness assessment reports
 - remediation plans based on readiness factors
+- tracked remediation workflow based on migration checklist
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
 - duplicate value detection for candidate key columns

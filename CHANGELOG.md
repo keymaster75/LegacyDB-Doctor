@@ -46,6 +46,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Unit tests for readiness score summary output.
 - Conservative Migration Readiness Score and readiness level in scan summary.
 - `Readiness Factors` Excel report sheet with score impact, severity, message, and recommendation.
+- `Migration Checklist` Excel report sheet with area, status, finding, recommended action, and related sheet.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -62,6 +63,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Moved dependency management to `pyproject.toml` with a `dev` extra for test dependencies.
 - Updated scan summary and Excel Summary sheet to include basic migration readiness indicators.
 - Extended Excel report with explainable readiness factor details.
+- Extended Excel report with a high-level migration action checklist.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

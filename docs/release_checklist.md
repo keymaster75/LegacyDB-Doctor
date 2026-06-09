@@ -101,6 +101,7 @@ Review the Excel report sheets:
 ```text
 Summary
 Readiness Factors
+Migration Checklist
 Migration Plan
 Tables
 Primary Keys
@@ -120,6 +121,7 @@ Confirm that:
 - `FK Suggestions` does not generate automatic `ALTER TABLE` statements
 - `Summary` includes Migration readiness score and Migration readiness level
 - `Readiness Factors` explains score factors with impact, severity, message, and recommendation
+- `Migration Checklist` includes action areas such as Readiness score, Primary keys, Data quality, Cleanup, Relationships, Warnings, and Schema
 
 Open the generated SQL and confirm:
 
@@ -315,6 +317,7 @@ Check that:
 - `--fk-suggestions-out` summary-only behavior is documented
 - Migration Readiness Score is documented as conservative and heuristic
 - `Readiness Factors` sheet is documented in the report sheet list
+- `Migration Checklist` sheet is documented in the report sheet list
 - CHANGELOG has an entry for the release checkpoint
 
 ---
@@ -338,8 +341,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.12-dev -m "Migration readiness score checkpoint"
-git push origin v0.1.12-dev
+git tag -a v0.1.13-dev -m "Migration checklist checkpoint"
+git push origin v0.1.13-dev
 ```
 
 Public release example:
