@@ -137,6 +137,7 @@ Confirm that:
 - `Summary` includes database file, database name, database size, and scan timestamp
 - `Readiness Factors` explains score factors with impact, severity, message, and recommendation
 - `Migration Checklist` includes action areas such as Readiness score, Primary keys, Data quality, Cleanup, Relationships, Warnings, and Schema
+- `Migration Checklist` includes `CSV export readiness` with `export-csv`, `validate-csv`, and `_export_manifest.csv` guidance
 - `Migration Plan` includes `Convertability Status` and `Convertability Reason` columns
 - convertability statuses include expected values such as `Ready`, `Review`, `Exclude`, and `Blocked`
 
@@ -337,6 +338,7 @@ Check that:
 - scan metadata fields are documented
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
+- CSV export readiness guidance is documented
 - table convertability statuses are documented
 - CHANGELOG has an entry for the release checkpoint
 
@@ -361,8 +363,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.16-dev -m "Scan metadata summary checkpoint"
-git push origin v0.1.16-dev
+git tag -a v0.1.17-dev -m "CSV export readiness checklist checkpoint"
+git push origin v0.1.17-dev
 ```
 
 Public release example:

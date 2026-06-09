@@ -46,6 +46,7 @@ LegacyDB Doctor can currently:
 - add table-level convertability status and reason to the Excel `Migration Plan` sheet
 - print readiness score factor details in the terminal with `--readiness-details`
 - include scan metadata in terminal and Excel Summary output: database file, database name, database size, and scan timestamp
+- include CSV export readiness guidance in the Excel `Migration Checklist` sheet
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -481,6 +482,8 @@ This sheet summarizes the main migration preparation areas into an action-orient
 
 The checklist is intended as a practical first-page action plan. It does not replace manual review, but it helps users decide where to look first.
 
+It also includes CSV export readiness guidance, pointing users to `export-csv`, `validate-csv`, and `_export_manifest.csv` before data import.
+
 In the open-source version, the checklist is generated as a static Excel sheet. A future advanced/pro workflow may add tracked remediation status, project notes, responsible persons, branded reports, or scan-to-scan progress tracking.
 
 ---
@@ -696,6 +699,8 @@ Run a full scan and review the Excel migration checklist:
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\migration_checklist_test" --use-recommended-names
 ```
+
+The `Migration Checklist` sheet should include a `CSV export readiness` row with guidance for `export-csv` and `validate-csv`.
 
 Run a quick scan and review scan metadata:
 
