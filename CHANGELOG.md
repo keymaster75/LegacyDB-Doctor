@@ -48,6 +48,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - `Readiness Factors` Excel report sheet with score impact, severity, message, and recommendation.
 - `Migration Checklist` Excel report sheet with area, status, finding, recommended action, and related sheet.
 - Table convertability status and reason in the `Migration Plan` Excel sheet.
+- CLI `--readiness-details` option for printing migration readiness factor details in the terminal.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -66,6 +67,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended Excel report with explainable readiness factor details.
 - Extended Excel report with a high-level migration action checklist.
 - Extended `Migration Plan` with table-level `Ready`, `Review`, `Exclude`, and `Blocked` convertability statuses.
+- Extended scan summary workflow with optional terminal readiness factor details.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

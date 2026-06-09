@@ -44,6 +44,7 @@ LegacyDB Doctor can currently:
 - explain readiness score factors in the Excel `Readiness Factors` sheet
 - create a high-level Excel `Migration Checklist` action plan
 - add table-level convertability status and reason to the Excel `Migration Plan` sheet
+- print readiness score factor details in the terminal with `--readiness-details`
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -316,6 +317,15 @@ python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --summary-only
 
 This skips Excel report and SQL schema generation.
 
+To also print the readiness score factors directly in the terminal:
+
+```powershell
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --summary-only --readiness-details
+```
+
+This prints the normal scan summary plus a `Migration readiness factors` table with factor, impact, severity, message, and recommendation.
+
+
 ### Output directory mode
 
 Instead of manually specifying both output files, you can generate default names in a selected folder:
@@ -433,7 +443,7 @@ Readiness levels:
 
 The score is intentionally conservative. It is not an automatic approval or rejection of a migration. It is meant to highlight how much review work may be needed before migration.
 
-The open-source version provides the basic score, readiness level, and an Excel `Readiness Factors` sheet that explains the main score impacts. More advanced remediation plans, configurable scoring profiles, comparison reports, or exportable branded assessment reports may be added later.
+The open-source version provides the basic score, readiness level, and an Excel `Readiness Factors` sheet that explains the main score impacts. The same factor details can also be printed in the terminal with `--readiness-details`, which is useful for quick summary-only checks. More advanced remediation plans, configurable scoring profiles, comparison reports, or exportable branded assessment reports may be added later.
 
 ---
 
@@ -673,6 +683,12 @@ Run a quick scan and review the basic readiness score:
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
+Run a quick scan with terminal readiness factor details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --readiness-details
 ```
 
 Run scan with review-only FK suggestion comments:

@@ -15,6 +15,7 @@ from .report_writer import write_excel_report
 from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
 from .csv_validator import validate_csv_export
+from .readiness_score import calculate_migration_readiness_score
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -33,6 +34,46 @@ def build_default_output_paths(database: Path, output_dir: Path) -> tuple[Path, 
     schema_path = output_dir / f"{database_stem}_schema.sql"
 
     return report_path, schema_path
+
+
+
+def build_readiness_details_table(tables, warnings) -> Table:
+    readiness = calculate_migration_readiness_score(tables, warnings)
+
+    details = Table(title="Migration readiness factors")
+    details.add_column("Factor")
+    details.add_column("Impact", justify="right")
+    details.add_column("Severity")
+    details.add_column("Message")
+    details.add_column("Recommendation")
+
+    details.add_row(
+        "Overall readiness",
+        f"{readiness.score} / 100",
+        readiness.level,
+        readiness.summary,
+        "Use this score as a conservative planning indicator, not as automatic migration approval.",
+    )
+
+    if readiness.factors:
+        for factor in readiness.factors:
+            details.add_row(
+                factor.name,
+                str(factor.impact),
+                factor.severity,
+                factor.message,
+                factor.recommendation,
+            )
+    else:
+        details.add_row(
+            "No major readiness penalties",
+            "0",
+            "Info",
+            "No major readiness penalties were detected by the current heuristic model.",
+            "Continue normal migration review before production use.",
+        )
+
+    return details
 
 
 @app.command()
@@ -75,6 +116,11 @@ def scan(
         False,
         "--use-recommended-names",
         help="Use normalized MySQL-safe table and column names in generated schema.sql.",
+    ),
+    readiness_details: bool = typer.Option(
+        False,
+        "--readiness-details",
+        help="Print migration readiness factor details in the terminal.",
     ),
 ) -> None:
     """Scan an Access database and generate migration-readiness outputs."""
@@ -126,6 +172,9 @@ def scan(
         summary.add_row(str(row["Metric"]), str(row["Value"]))
 
     console.print(summary)
+
+    if readiness_details:
+        console.print(build_readiness_details_table(tables, warnings))
 
 
 @app.command("export-csv")

@@ -81,6 +81,19 @@ Expected:
 - scan summary is shown
 - table, column, row, warning, migration readiness score, migration readiness level, primary key, data-quality, and potential relationship metrics look reasonable
 
+Also test terminal readiness factor details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --readiness-details
+```
+
+Expected:
+
+- normal scan summary is shown
+- `Migration readiness factors` table is shown
+- factor impact, severity, message, and recommendation are visible
+
+
 ---
 
 ## 6. Generate Excel report and SQL schema
@@ -318,6 +331,7 @@ Check that:
 - `--fk-suggestions-out` usage is documented and marked as review-only
 - `--fk-suggestions-out` summary-only behavior is documented
 - Migration Readiness Score is documented as conservative and heuristic
+- `--readiness-details` usage is documented
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
 - table convertability statuses are documented
@@ -344,8 +358,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.14-dev -m "Table convertability status checkpoint"
-git push origin v0.1.14-dev
+git tag -a v0.1.15-dev -m "Readiness details CLI checkpoint"
+git push origin v0.1.15-dev
 ```
 
 Public release example:

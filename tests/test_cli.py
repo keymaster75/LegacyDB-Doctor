@@ -35,3 +35,12 @@ def test_scan_help_mentions_fk_suggestions_are_review_only_and_summary_compatibl
     assert "review-only" in result.output
     assert "normal scan" in result.output
 
+
+def test_scan_help_includes_readiness_details_option():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "--readiness-details" in result.output
+    assert "readiness" in result.output
+    assert "details" in result.output
+
