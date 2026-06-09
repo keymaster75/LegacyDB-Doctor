@@ -89,9 +89,13 @@ def build_readiness_factors_rows(tables: list[TableInfo], warnings: list[Warning
     return rows
 
 
-def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) -> dict[str, pd.DataFrame]:
+def build_report_frames(
+    tables: list[TableInfo],
+    warnings: list[WarningInfo],
+    database_path: str | Path | None = None,
+) -> dict[str, pd.DataFrame]:
     data_quality_rows = build_data_quality_rows(tables)
-    summary_df = pd.DataFrame(build_scan_summary(tables, warnings))
+    summary_df = pd.DataFrame(build_scan_summary(tables, warnings, database_path=database_path))
     readiness_factors_df = pd.DataFrame(build_readiness_factors_rows(tables, warnings))
     migration_checklist_df = pd.DataFrame(build_migration_checklist_rows(tables, warnings))
 
@@ -424,9 +428,14 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     }
 
 
-def write_excel_report(tables: list[TableInfo], warnings: list[WarningInfo], output_path: str | Path) -> Path:
+def write_excel_report(
+    tables: list[TableInfo],
+    warnings: list[WarningInfo],
+    output_path: str | Path,
+    database_path: str | Path | None = None,
+) -> Path:
     output = Path(output_path)
-    frames = build_report_frames(tables, warnings)
+    frames = build_report_frames(tables, warnings, database_path=database_path)
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         for sheet_name, df in frames.items():

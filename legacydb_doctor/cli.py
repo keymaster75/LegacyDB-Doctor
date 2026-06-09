@@ -140,7 +140,7 @@ def scan(
         if fk_suggestions_out is not None:
             console.print("[cyan]Explicit FK suggestions output requested; it will still be created.[/cyan]")
     else:
-        report_path = write_excel_report(tables, warnings, out)
+        report_path = write_excel_report(tables, warnings, out, database_path=database)
         console.print(f"[green]Excel report created:[/green] {report_path}")
 
         if open_report:
@@ -168,7 +168,7 @@ def scan(
     summary.add_column("Metric")
     summary.add_column("Value", justify="right")
 
-    for row in build_scan_summary(tables, warnings):
+    for row in build_scan_summary(tables, warnings, database_path=database):
         summary.add_row(str(row["Metric"]), str(row["Value"]))
 
     console.print(summary)

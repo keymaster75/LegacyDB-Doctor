@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from legacydb_doctor.models import ColumnInfo, TableInfo, WarningInfo
 from legacydb_doctor.summary_builder import build_scan_summary
 
@@ -156,4 +158,27 @@ def test_build_scan_summary_shows_high_readiness_for_clean_database():
 
     assert summary_dict["Migration readiness score"] == "100 / 100"
     assert summary_dict["Migration readiness level"] == "High"
+
+
+def test_build_scan_summary_includes_database_metadata(tmp_path):
+    database = tmp_path / "Library.mdb"
+    database.write_bytes(b"legacydb-test")
+
+    tables = [
+        TableInfo(
+            table_name="Autor",
+            row_count=10,
+            columns=[make_column("Autor", "SifA")],
+            primary_keys=["SifA"],
+            primary_key_source="unique_index",
+        )
+    ]
+
+    summary = build_scan_summary(tables, warnings=[], database_path=database)
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Database file"] == str(database)
+    assert summary_dict["Database name"] == "Library.mdb"
+    assert summary_dict["Database size MB"] == "0.00"
+    assert "T" in summary_dict["Scan timestamp"]
 
