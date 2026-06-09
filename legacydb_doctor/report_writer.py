@@ -11,6 +11,7 @@ from .access_reader import guess_potential_relationships, suggest_mysql_identifi
 from .summary_builder import build_data_quality_rows, build_scan_summary
 from .readiness_score import calculate_migration_readiness_score
 from .migration_checklist import build_migration_checklist_rows
+from .convertability import evaluate_table_convertability
 
 def _autosize_worksheet(ws) -> None:
     for column_cells in ws.columns:
@@ -283,6 +284,7 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
     for table in tables:
         table_name_lower = table.table_name.lower()
         reasons = []
+        convertability = evaluate_table_convertability(table)
 
         is_import_error = "importerrors" in table_name_lower or "import errors" in table_name_lower
         is_copy_table = (
@@ -331,6 +333,8 @@ def build_report_frames(tables: list[TableInfo], warnings: list[WarningInfo]) ->
             {
                 "Table": table.table_name,
                 "Recommended MySQL Table": suggest_mysql_identifier(table.table_name),
+                "Convertability Status": convertability.status,
+                "Convertability Reason": convertability.reason,
                 "Recommendation": recommendation,
                 "Rows": table.row_count,
                 "Columns": len(table.columns),

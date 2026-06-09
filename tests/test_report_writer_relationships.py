@@ -201,3 +201,53 @@ def test_build_report_frames_includes_migration_checklist_sheet():
     readiness_row = df[df["Area"] == "Readiness score"].iloc[0]
     assert readiness_row["Related Sheet"] == "Readiness Factors"
 
+
+def test_build_report_frames_adds_convertability_columns_to_migration_plan():
+    tables = [
+        TableInfo(
+            table_name="ReadyTable",
+            row_count=10,
+            columns=[col("ReadyTable", "Id"), col("ReadyTable", "Name")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="BlockedTable",
+            row_count=5,
+            columns=[col("BlockedTable", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+        TableInfo(
+            table_name="EmptyDomain",
+            row_count=0,
+            columns=[],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Copy Of OldData",
+            row_count=5,
+            columns=[col("Copy Of OldData", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+
+    df = frames["Migration Plan"]
+
+    assert "Convertability Status" in df.columns
+    assert "Convertability Reason" in df.columns
+
+    statuses = dict(zip(df["Table"], df["Convertability Status"]))
+
+    assert statuses["ReadyTable"] == "Ready"
+    assert statuses["BlockedTable"] == "Blocked"
+    assert statuses["EmptyDomain"] == "Review"
+    assert statuses["Copy Of OldData"] == "Exclude"
+
+    blocked_reason = df[df["Table"] == "BlockedTable"].iloc[0]["Convertability Reason"]
+    assert "no detected primary key" in blocked_reason
+
