@@ -53,6 +53,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - CSV export readiness action in the `Migration Checklist` Excel sheet.
 - Convertability status counts in terminal and Excel Summary output.
 - CLI `--convertability-details` option for printing table-level convertability details in the terminal.
+- CLI `--convertability-details-limit` option for limiting terminal convertability detail rows.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -76,6 +77,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended `Migration Checklist` with CSV export and validation guidance.
 - Extended scan summary and Excel Summary sheet with table-level convertability counts.
 - Extended scan summary workflow with optional terminal table-level convertability details.
+- Improved terminal convertability details output for large databases by allowing row limiting.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

@@ -49,6 +49,7 @@ LegacyDB Doctor can currently:
 - include CSV export readiness guidance in the Excel `Migration Checklist` sheet
 - include convertability status counts in the terminal and Excel Summary output
 - print table convertability details in the terminal with `--convertability-details`
+- limit terminal convertability detail output with `--convertability-details-limit`
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -358,6 +359,14 @@ python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --summary-only --conver
 
 This prints the normal scan summary plus a `Table convertability details` table with table name, status, reason, row count, and primary key status.
 
+For large databases, limit the number of terminal convertability rows:
+
+```powershell
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details --convertability-details-limit 20
+```
+
+When the output is limited, LegacyDB Doctor shows how many tables are displayed and reminds you to open the Excel `Migration Plan` sheet for full details.
+
 
 ### Output directory mode
 
@@ -608,6 +617,8 @@ The same statuses are also summarized as counts in the terminal summary and Exce
 
 For quick terminal review, the same table-level details can be printed with `--convertability-details`.
 
+For large databases, `--convertability-details-limit` can limit the terminal output while preserving risk-based ordering.
+
 This status is intended as migration planning guidance. It should not be treated as an automatic migration decision.
 
 ---
@@ -745,6 +756,12 @@ Run a quick scan and review the basic readiness score:
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
+Run a quick scan with limited terminal convertability details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details --convertability-details-limit 20
 ```
 
 Run a quick scan with terminal convertability details:

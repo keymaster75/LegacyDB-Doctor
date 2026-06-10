@@ -95,6 +95,19 @@ Expected:
 - `Table convertability details` table is shown
 - table name, status, reason, row count, and primary key status are visible
 
+Also test limited terminal convertability details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details --convertability-details-limit 10
+```
+
+Expected:
+
+- normal scan summary is shown
+- `Table convertability details` table is shown
+- output is limited to the requested number of rows
+- if more rows exist, a message points to the Excel `Migration Plan` sheet for full details
+
 Also test terminal readiness factor details:
 
 ```powershell
@@ -350,6 +363,7 @@ Check that:
 - Migration Readiness Score is documented as conservative and heuristic
 - `--readiness-details` usage is documented
 - `--convertability-details` usage is documented
+- `--convertability-details-limit` usage is documented
 - scan metadata fields are documented
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
@@ -379,8 +393,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.19-dev -m "Convertability details CLI checkpoint"
-git push origin v0.1.19-dev
+git tag -a v0.1.20-dev -m "Convertability details limit checkpoint"
+git push origin v0.1.20-dev
 ```
 
 Public release example:
