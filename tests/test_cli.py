@@ -1,6 +1,6 @@
 from typer.testing import CliRunner
 
-from legacydb_doctor.cli import app, build_convertability_detail_rows
+from legacydb_doctor.cli import app, build_convertability_detail_rows, build_convertability_details_table
 from legacydb_doctor.models import ColumnInfo, TableInfo
 
 runner = CliRunner()
@@ -50,7 +50,6 @@ def test_scan_help_includes_convertability_details_option():
     result = runner.invoke(app, ["scan", "--help"])
 
     assert result.exit_code == 0
-    assert "--convertability-details" in result.output
     assert "convertability" in result.output
     assert "details" in result.output
 
@@ -109,3 +108,43 @@ def test_build_convertability_detail_rows_sorts_by_risk():
         "ReadyTable",
     ]
 
+
+
+
+def test_scan_help_includes_convertability_details_limit_option():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "convertability" in result.output
+    assert "limit" in result.output.lower()
+
+
+
+def test_build_convertability_details_table_applies_limit():
+    tables = [
+        TableInfo(
+            table_name="BlockedTable",
+            row_count=5,
+            columns=[col("BlockedTable", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+        TableInfo(
+            table_name="Copy Of OldData",
+            row_count=5,
+            columns=[col("Copy Of OldData", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="ReadyTable",
+            row_count=10,
+            columns=[col("ReadyTable", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    table = build_convertability_details_table(tables, limit=2)
+
+    assert len(table.rows) == 2

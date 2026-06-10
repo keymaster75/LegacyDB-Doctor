@@ -109,7 +109,7 @@ def build_convertability_detail_rows(tables) -> list[dict[str, str]]:
     )
 
 
-def build_convertability_details_table(tables) -> Table:
+def build_convertability_details_table(tables, limit: int | None = None) -> Table:
     details = Table(title="Table convertability details")
     details.add_column("Table")
     details.add_column("Status")
@@ -117,7 +117,10 @@ def build_convertability_details_table(tables) -> Table:
     details.add_column("Rows", justify="right")
     details.add_column("PK Status")
 
-    for row in build_convertability_detail_rows(tables):
+    rows = build_convertability_detail_rows(tables)
+    visible_rows = rows[:limit] if limit is not None else rows
+
+    for row in visible_rows:
         details.add_row(
             row["Table"],
             row["Status"],
@@ -180,6 +183,12 @@ def scan(
         "--convertability-details",
         help="Print table convertability status details in the terminal.",
     ),
+    convertability_details_limit: Optional[int] = typer.Option(
+        None,
+        "--convertability-details-limit",
+        min=1,
+        help="Limit the number of rows shown by --convertability-details.",
+    ),
 ) -> None:
     """Scan an Access database and generate migration-readiness outputs."""
     console.print(f"[bold]LegacyDB Doctor[/bold] scanning: {database}")
@@ -235,7 +244,14 @@ def scan(
         console.print(build_readiness_details_table(tables, warnings))
 
     if convertability_details:
-        console.print(build_convertability_details_table(tables))
+        convertability_rows = build_convertability_detail_rows(tables)
+        console.print(build_convertability_details_table(tables, limit=convertability_details_limit))
+
+        if convertability_details_limit is not None and len(convertability_rows) > convertability_details_limit:
+            console.print(
+                f"[yellow]Showing {convertability_details_limit} of {len(convertability_rows)} tables. "
+                "Open the Excel Migration Plan sheet for full details.[/yellow]"
+            )
 
 
 @app.command("export-csv")
