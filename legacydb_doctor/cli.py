@@ -77,6 +77,38 @@ def build_readiness_details_table(tables, warnings) -> Table:
     return details
 
 
+_CONVERTABILITY_STATUS_ORDER = {
+    "Blocked": 0,
+    "Exclude": 1,
+    "Review": 2,
+    "Ready": 3,
+}
+
+
+def build_convertability_detail_rows(tables) -> list[dict[str, str]]:
+    rows = []
+
+    for table in tables:
+        convertability = evaluate_table_convertability(table)
+        rows.append(
+            {
+                "Table": table.table_name,
+                "Status": convertability.status,
+                "Reason": convertability.reason,
+                "Rows": str(table.row_count or 0),
+                "PK Status": table.primary_key_source,
+            }
+        )
+
+    return sorted(
+        rows,
+        key=lambda row: (
+            _CONVERTABILITY_STATUS_ORDER.get(row["Status"], 99),
+            row["Table"].lower(),
+        ),
+    )
+
+
 def build_convertability_details_table(tables) -> Table:
     details = Table(title="Table convertability details")
     details.add_column("Table")
@@ -85,14 +117,13 @@ def build_convertability_details_table(tables) -> Table:
     details.add_column("Rows", justify="right")
     details.add_column("PK Status")
 
-    for table in tables:
-        convertability = evaluate_table_convertability(table)
+    for row in build_convertability_detail_rows(tables):
         details.add_row(
-            table.table_name,
-            convertability.status,
-            convertability.reason,
-            str(table.row_count or 0),
-            table.primary_key_source,
+            row["Table"],
+            row["Status"],
+            row["Reason"],
+            row["Rows"],
+            row["PK Status"],
         )
 
     return details
