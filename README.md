@@ -50,6 +50,7 @@ LegacyDB Doctor can currently:
 - include convertability status counts in the terminal and Excel Summary output
 - print table convertability details in the terminal with `--convertability-details`
 - limit terminal convertability detail output with `--convertability-details-limit`
+- filter terminal convertability details by status with `--convertability-status`
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -619,6 +620,8 @@ For quick terminal review, the same table-level details can be printed with `--c
 
 For large databases, `--convertability-details-limit` can limit the terminal output while preserving risk-based ordering.
 
+Use `--convertability-status` to focus terminal output on only `Ready`, `Review`, `Exclude`, or `Blocked` tables.
+
 This status is intended as migration planning guidance. It should not be treated as an automatic migration decision.
 
 ---
@@ -756,6 +759,12 @@ Run a quick scan and review the basic readiness score:
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
+Run a quick scan with terminal convertability details filtered to blocked tables:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details --convertability-status Blocked
 ```
 
 Run a quick scan with limited terminal convertability details:

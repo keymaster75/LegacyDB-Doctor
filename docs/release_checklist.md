@@ -108,6 +108,19 @@ Expected:
 - output is limited to the requested number of rows
 - if more rows exist, a message points to the Excel `Migration Plan` sheet for full details
 
+Also test filtered terminal convertability details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details --convertability-status Blocked --convertability-details-limit 10
+```
+
+Expected:
+
+- normal scan summary is shown
+- `Table convertability details` table is shown
+- only `Blocked` rows are shown
+- output is limited when more rows exist than the requested limit
+
 Also test terminal readiness factor details:
 
 ```powershell
@@ -364,6 +377,7 @@ Check that:
 - `--readiness-details` usage is documented
 - `--convertability-details` usage is documented
 - `--convertability-details-limit` usage is documented
+- `--convertability-status` usage is documented
 - scan metadata fields are documented
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
@@ -393,8 +407,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.20-dev -m "Convertability details limit checkpoint"
-git push origin v0.1.20-dev
+git tag -a v0.1.21-dev -m "Convertability status filter checkpoint"
+git push origin v0.1.21-dev
 ```
 
 Public release example:
