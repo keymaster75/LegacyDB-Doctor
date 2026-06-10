@@ -83,6 +83,18 @@ Expected:
 - table, column, row, warning, migration readiness score, migration readiness level, primary key, data-quality, and potential relationship metrics look reasonable
 - scan summary includes convertability counts for `Ready`, `Review`, `Exclude`, and `Blocked` tables
 
+Also test terminal convertability details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details
+```
+
+Expected:
+
+- normal scan summary is shown
+- `Table convertability details` table is shown
+- table name, status, reason, row count, and primary key status are visible
+
 Also test terminal readiness factor details:
 
 ```powershell
@@ -337,6 +349,7 @@ Check that:
 - `--fk-suggestions-out` summary-only behavior is documented
 - Migration Readiness Score is documented as conservative and heuristic
 - `--readiness-details` usage is documented
+- `--convertability-details` usage is documented
 - scan metadata fields are documented
 - `Readiness Factors` sheet is documented in the report sheet list
 - `Migration Checklist` sheet is documented in the report sheet list
@@ -366,8 +379,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.18-dev -m "Convertability summary counts checkpoint"
-git push origin v0.1.18-dev
+git tag -a v0.1.19-dev -m "Convertability details CLI checkpoint"
+git push origin v0.1.19-dev
 ```
 
 Public release example:

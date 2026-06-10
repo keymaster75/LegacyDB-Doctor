@@ -48,6 +48,7 @@ LegacyDB Doctor can currently:
 - include scan metadata in terminal and Excel Summary output: database file, database name, database size, and scan timestamp
 - include CSV export readiness guidance in the Excel `Migration Checklist` sheet
 - include convertability status counts in the terminal and Excel Summary output
+- print table convertability details in the terminal with `--convertability-details`
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -349,6 +350,14 @@ python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --summary-only --readin
 
 This prints the normal scan summary plus a `Migration readiness factors` table with factor, impact, severity, message, and recommendation.
 
+To also print table-level convertability details directly in the terminal:
+
+```powershell
+python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details
+```
+
+This prints the normal scan summary plus a `Table convertability details` table with table name, status, reason, row count, and primary key status.
+
 
 ### Output directory mode
 
@@ -597,6 +606,8 @@ The report also includes a `Convertability Reason` column that explains why the 
 
 The same statuses are also summarized as counts in the terminal summary and Excel `Summary` sheet.
 
+For quick terminal review, the same table-level details can be printed with `--convertability-details`.
+
 This status is intended as migration planning guidance. It should not be treated as an automatic migration decision.
 
 ---
@@ -734,6 +745,12 @@ Run a quick scan and review the basic readiness score:
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
+Run a quick scan with terminal convertability details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --convertability-details
 ```
 
 Run a quick scan with terminal readiness factor details:
