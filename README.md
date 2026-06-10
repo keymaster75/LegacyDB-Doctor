@@ -47,6 +47,7 @@ LegacyDB Doctor can currently:
 - print readiness score factor details in the terminal with `--readiness-details`
 - include scan metadata in terminal and Excel Summary output: database file, database name, database size, and scan timestamp
 - include CSV export readiness guidance in the Excel `Migration Checklist` sheet
+- include convertability status counts in the terminal and Excel Summary output
 - generate a MySQL `schema.sql`
 - optionally export review-only FK suggestions as SQL comments with `--fk-suggestions-out`
 - optionally generate schema using normalized MySQL-safe identifiers
@@ -74,7 +75,7 @@ The generated Excel report currently includes:
 
 | Sheet | Purpose |
 |---|---|
-| `Summary` | Scan metadata, overall database metrics, warning counts, migration readiness score, primary key status counts, and data-quality counts |
+| `Summary` | Scan metadata, overall database metrics, warning counts, migration readiness score, convertability status counts, primary key status counts, and data-quality counts |
 | `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
 | `Migration Checklist` | High-level action checklist with area, status, finding, recommended action, and related sheet |
 | `Migration Plan` | Recommended action per table with convertability status, reason, migration recommendation, and suggested action |
@@ -113,6 +114,10 @@ LegacyDB Doctor scanning: C:\Mdb_test\Library.mdb
 │ Total notes             │   291 │
 │ Migration readiness score │ 10 / 100 │
 │ Migration readiness level │ Low │
+│ Convertability ready    │    12 │
+│ Convertability review   │     8 │
+│ Convertability exclude  │     5 │
+│ Convertability blocked  │    10 │
 │ PK formal               │     0 │
 │ PK unique_index         │    17 │
 │ PK candidate            │     0 │
@@ -439,6 +444,19 @@ For manifest-only export folders, `planned` rows are considered valid when no CS
 
 ---
 
+### Convertability summary counts
+
+The terminal summary and Excel `Summary` sheet include table-level convertability counts:
+
+| Metric | Meaning |
+|---|---|
+| `Convertability ready` | Tables that look structurally ready for migration |
+| `Convertability review` | Tables that require manual review before migration |
+| `Convertability exclude` | Tables that look like copy, backup, temp, test, old, or import-error artifacts |
+| `Convertability blocked` | Tables with rows but no detected primary key, unique index, or candidate key |
+
+These counts provide a quick first-page view of how many tables can probably move forward and how many need attention.
+
 ## Migration Readiness Score
 
 LegacyDB Doctor calculates a conservative migration-readiness score from 0 to 100.
@@ -576,6 +594,8 @@ Each table receives a conservative status:
 | `Blocked` | Table has rows but no detected primary key, unique index, or candidate key |
 
 The report also includes a `Convertability Reason` column that explains why the status was assigned.
+
+The same statuses are also summarized as counts in the terminal summary and Excel `Summary` sheet.
 
 This status is intended as migration planning guidance. It should not be treated as an automatic migration decision.
 

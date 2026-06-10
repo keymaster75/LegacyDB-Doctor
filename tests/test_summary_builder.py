@@ -77,6 +77,10 @@ def test_build_scan_summary_counts_tables_columns_rows_warnings_pk_and_dq():
     assert summary_dict["Total notes"] == 2
     assert summary_dict["Migration readiness score"] == "72 / 100"
     assert summary_dict["Migration readiness level"] == "Medium"
+    assert summary_dict["Convertability ready"] == 1
+    assert summary_dict["Convertability review"] == 1
+    assert summary_dict["Convertability exclude"] == 0
+    assert summary_dict["Convertability blocked"] == 0
     assert summary_dict["PK formal"] == 0
     assert summary_dict["PK unique_index"] == 1
     assert summary_dict["PK candidate"] == 0
@@ -182,3 +186,44 @@ def test_build_scan_summary_includes_database_metadata(tmp_path):
     assert summary_dict["Database size MB"] == "0.00"
     assert "T" in summary_dict["Scan timestamp"]
 
+
+
+def test_build_scan_summary_includes_convertability_counts():
+    tables = [
+        TableInfo(
+            table_name="ReadyTable",
+            row_count=10,
+            columns=[make_column("ReadyTable", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="BlockedTable",
+            row_count=5,
+            columns=[make_column("BlockedTable", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+        TableInfo(
+            table_name="EmptyDomain",
+            row_count=0,
+            columns=[],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="Copy Of OldData",
+            row_count=5,
+            columns=[make_column("Copy Of OldData", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    summary = build_scan_summary(tables, warnings=[])
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Convertability ready"] == 1
+    assert summary_dict["Convertability review"] == 1
+    assert summary_dict["Convertability exclude"] == 1
+    assert summary_dict["Convertability blocked"] == 1

@@ -51,6 +51,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - CLI `--readiness-details` option for printing migration readiness factor details in the terminal.
 - Scan metadata in terminal and Excel Summary output, including database file, database name, database size, and scan timestamp.
 - CSV export readiness action in the `Migration Checklist` Excel sheet.
+- Convertability status counts in terminal and Excel Summary output.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -72,6 +73,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended scan summary workflow with optional terminal readiness factor details.
 - Extended scan summary and Excel Summary sheet with database file metadata for better auditability.
 - Extended `Migration Checklist` with CSV export and validation guidance.
+- Extended scan summary and Excel Summary sheet with table-level convertability counts.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

@@ -6,6 +6,7 @@ from pathlib import Path
 from .access_reader import guess_potential_relationships, suggest_mysql_identifier
 from .readiness_score import calculate_migration_readiness_score
 from .models import TableInfo, WarningInfo
+from .convertability import evaluate_table_convertability
 
 
 def build_data_quality_rows(tables: list[TableInfo]) -> list[dict]:
@@ -70,6 +71,11 @@ def build_scan_summary(
     potential_relationships = guess_potential_relationships(tables)
     readiness_score = calculate_migration_readiness_score(tables, warnings)
 
+    convertability_counts = {"Ready": 0, "Review": 0, "Exclude": 0, "Blocked": 0}
+    for table in tables:
+        convertability = evaluate_table_convertability(table)
+        convertability_counts[convertability.status] = convertability_counts.get(convertability.status, 0) + 1
+
     metadata_rows: list[dict[str, int | str]] = [
         {"Metric": "Scan timestamp", "Value": datetime.now().isoformat(timespec="seconds")}
     ]
@@ -96,6 +102,10 @@ def build_scan_summary(
         {"Metric": "Total notes", "Value": len(warnings)},
         {"Metric": "Migration readiness score", "Value": f"{readiness_score.score} / 100"},
         {"Metric": "Migration readiness level", "Value": readiness_score.level},
+        {"Metric": "Convertability ready", "Value": convertability_counts["Ready"]},
+        {"Metric": "Convertability review", "Value": convertability_counts["Review"]},
+        {"Metric": "Convertability exclude", "Value": convertability_counts["Exclude"]},
+        {"Metric": "Convertability blocked", "Value": convertability_counts["Blocked"]},
         {"Metric": "PK formal", "Value": pk_formal_count},
         {"Metric": "PK unique_index", "Value": pk_unique_index_count},
         {"Metric": "PK candidate", "Value": pk_candidate_count},

@@ -81,6 +81,7 @@ Expected:
 - scan summary is shown
 - scan summary includes `Database file`, `Database name`, `Database size MB`, and `Scan timestamp`
 - table, column, row, warning, migration readiness score, migration readiness level, primary key, data-quality, and potential relationship metrics look reasonable
+- scan summary includes convertability counts for `Ready`, `Review`, `Exclude`, and `Blocked` tables
 
 Also test terminal readiness factor details:
 
@@ -138,6 +139,7 @@ Confirm that:
 - `Readiness Factors` explains score factors with impact, severity, message, and recommendation
 - `Migration Checklist` includes action areas such as Readiness score, Primary keys, Data quality, Cleanup, Relationships, Warnings, and Schema
 - `Migration Checklist` includes `CSV export readiness` with `export-csv`, `validate-csv`, and `_export_manifest.csv` guidance
+- `Summary` includes convertability counts for `Ready`, `Review`, `Exclude`, and `Blocked` tables
 - `Migration Plan` includes `Convertability Status` and `Convertability Reason` columns
 - convertability statuses include expected values such as `Ready`, `Review`, `Exclude`, and `Blocked`
 
@@ -340,6 +342,7 @@ Check that:
 - `Migration Checklist` sheet is documented in the report sheet list
 - CSV export readiness guidance is documented
 - table convertability statuses are documented
+- convertability summary counts are documented
 - CHANGELOG has an entry for the release checkpoint
 
 ---
@@ -363,8 +366,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.17-dev -m "CSV export readiness checklist checkpoint"
-git push origin v0.1.17-dev
+git tag -a v0.1.18-dev -m "Convertability summary counts checkpoint"
+git push origin v0.1.18-dev
 ```
 
 Public release example:
