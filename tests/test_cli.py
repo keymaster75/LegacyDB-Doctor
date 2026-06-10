@@ -148,3 +148,102 @@ def test_build_convertability_details_table_applies_limit():
     table = build_convertability_details_table(tables, limit=2)
 
     assert len(table.rows) == 2
+
+
+
+def test_scan_help_includes_convertability_status_option():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "convertability" in result.output
+    assert "status" in result.output.lower()
+
+
+
+def test_build_convertability_detail_rows_filters_by_status():
+    tables = [
+        TableInfo(
+            table_name="ReadyTable",
+            row_count=10,
+            columns=[col("ReadyTable", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="BlockedTable",
+            row_count=5,
+            columns=[col("BlockedTable", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+        TableInfo(
+            table_name="Copy Of OldData",
+            row_count=5,
+            columns=[col("Copy Of OldData", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    rows = build_convertability_detail_rows(tables, status_filter="Blocked")
+
+    assert len(rows) == 1
+    assert rows[0]["Table"] == "BlockedTable"
+    assert rows[0]["Status"] == "Blocked"
+
+
+
+def test_build_convertability_detail_rows_filters_by_status_case_insensitive():
+    tables = [
+        TableInfo(
+            table_name="ReadyTable",
+            row_count=10,
+            columns=[col("ReadyTable", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+        TableInfo(
+            table_name="BlockedTable",
+            row_count=5,
+            columns=[col("BlockedTable", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+    ]
+
+    rows = build_convertability_detail_rows(tables, status_filter="ready")
+
+    assert len(rows) == 1
+    assert rows[0]["Table"] == "ReadyTable"
+    assert rows[0]["Status"] == "Ready"
+
+
+
+def test_build_convertability_details_table_applies_status_filter_and_limit():
+    tables = [
+        TableInfo(
+            table_name="BlockedA",
+            row_count=5,
+            columns=[col("BlockedA", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+        TableInfo(
+            table_name="BlockedB",
+            row_count=7,
+            columns=[col("BlockedB", "Name")],
+            primary_keys=[],
+            primary_key_source="none",
+        ),
+        TableInfo(
+            table_name="ReadyTable",
+            row_count=10,
+            columns=[col("ReadyTable", "Id")],
+            primary_keys=["Id"],
+            primary_key_source="unique_index",
+        ),
+    ]
+
+    table = build_convertability_details_table(tables, limit=1, status_filter="Blocked")
+
+    assert len(table.rows) == 1

@@ -85,7 +85,7 @@ _CONVERTABILITY_STATUS_ORDER = {
 }
 
 
-def build_convertability_detail_rows(tables) -> list[dict[str, str]]:
+def build_convertability_detail_rows(tables, status_filter: str | None = None) -> list[dict[str, str]]:
     rows = []
 
     for table in tables:
@@ -100,6 +100,10 @@ def build_convertability_detail_rows(tables) -> list[dict[str, str]]:
             }
         )
 
+    if status_filter is not None:
+        normalized_status_filter = status_filter.strip().lower()
+        rows = [row for row in rows if row["Status"].lower() == normalized_status_filter]
+
     return sorted(
         rows,
         key=lambda row: (
@@ -109,7 +113,11 @@ def build_convertability_detail_rows(tables) -> list[dict[str, str]]:
     )
 
 
-def build_convertability_details_table(tables, limit: int | None = None) -> Table:
+def build_convertability_details_table(
+    tables,
+    limit: int | None = None,
+    status_filter: str | None = None,
+) -> Table:
     details = Table(title="Table convertability details")
     details.add_column("Table")
     details.add_column("Status")
@@ -117,7 +125,7 @@ def build_convertability_details_table(tables, limit: int | None = None) -> Tabl
     details.add_column("Rows", justify="right")
     details.add_column("PK Status")
 
-    rows = build_convertability_detail_rows(tables)
+    rows = build_convertability_detail_rows(tables, status_filter=status_filter)
     visible_rows = rows[:limit] if limit is not None else rows
 
     for row in visible_rows:
@@ -189,6 +197,11 @@ def scan(
         min=1,
         help="Limit the number of rows shown by --convertability-details.",
     ),
+    convertability_status: Optional[str] = typer.Option(
+        None,
+        "--convertability-status",
+        help="Filter --convertability-details by status: Ready, Review, Exclude, or Blocked.",
+    ),
 ) -> None:
     """Scan an Access database and generate migration-readiness outputs."""
     console.print(f"[bold]LegacyDB Doctor[/bold] scanning: {database}")
@@ -201,6 +214,15 @@ def scan(
 
     if output_dir is not None:
         out, schema_out = build_default_output_paths(database, output_dir)
+
+    if convertability_status is not None:
+        valid_convertability_statuses = {"ready", "review", "exclude", "blocked"}
+        if convertability_status.strip().lower() not in valid_convertability_statuses:
+            console.print(
+                "[bold red]Error:[/bold red] --convertability-status must be one of: "
+                "Ready, Review, Exclude, Blocked"
+            )
+            raise typer.Exit(code=1)
 
     if summary_only:
         console.print("[yellow]Summary-only mode: Excel report and schema SQL generation skipped.[/yellow]")
@@ -244,8 +266,17 @@ def scan(
         console.print(build_readiness_details_table(tables, warnings))
 
     if convertability_details:
-        convertability_rows = build_convertability_detail_rows(tables)
-        console.print(build_convertability_details_table(tables, limit=convertability_details_limit))
+        convertability_rows = build_convertability_detail_rows(
+            tables,
+            status_filter=convertability_status,
+        )
+        console.print(
+            build_convertability_details_table(
+                tables,
+                limit=convertability_details_limit,
+                status_filter=convertability_status,
+            )
+        )
 
         if convertability_details_limit is not None and len(convertability_rows) > convertability_details_limit:
             console.print(
