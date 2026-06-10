@@ -16,6 +16,7 @@ from .summary_builder import build_scan_summary
 from .sql_writer import write_schema_sql
 from .csv_validator import validate_csv_export
 from .readiness_score import calculate_migration_readiness_score
+from .convertability import evaluate_table_convertability
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -76,6 +77,27 @@ def build_readiness_details_table(tables, warnings) -> Table:
     return details
 
 
+def build_convertability_details_table(tables) -> Table:
+    details = Table(title="Table convertability details")
+    details.add_column("Table")
+    details.add_column("Status")
+    details.add_column("Reason")
+    details.add_column("Rows", justify="right")
+    details.add_column("PK Status")
+
+    for table in tables:
+        convertability = evaluate_table_convertability(table)
+        details.add_row(
+            table.table_name,
+            convertability.status,
+            convertability.reason,
+            str(table.row_count or 0),
+            table.primary_key_source,
+        )
+
+    return details
+
+
 @app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
@@ -121,6 +143,11 @@ def scan(
         False,
         "--readiness-details",
         help="Print migration readiness factor details in the terminal.",
+    ),
+    convertability_details: bool = typer.Option(
+        False,
+        "--convertability-details",
+        help="Print table convertability status details in the terminal.",
     ),
 ) -> None:
     """Scan an Access database and generate migration-readiness outputs."""
@@ -175,6 +202,9 @@ def scan(
 
     if readiness_details:
         console.print(build_readiness_details_table(tables, warnings))
+
+    if convertability_details:
+        console.print(build_convertability_details_table(tables))
 
 
 @app.command("export-csv")

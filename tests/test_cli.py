@@ -44,3 +44,12 @@ def test_scan_help_includes_readiness_details_option():
     assert "readiness" in result.output
     assert "details" in result.output
 
+
+def test_scan_help_includes_convertability_details_option():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "--convertability-details" in result.output
+    assert "convertability" in result.output
+    assert "details" in result.output
+
