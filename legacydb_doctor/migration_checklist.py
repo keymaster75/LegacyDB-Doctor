@@ -3,6 +3,7 @@ from __future__ import annotations
 from .access_reader import guess_potential_relationships
 from .models import TableInfo, WarningInfo
 from .readiness_score import calculate_migration_readiness_score
+from .duplicate_detector import count_duplicate_key_affected_rows, count_duplicate_key_issues
 
 
 def _status_for_readiness_level(level: str) -> str:
@@ -69,6 +70,8 @@ def build_migration_checklist_rows(tables: list[TableInfo], warnings: list[Warni
         or table.primary_key_source == "none"
         or _looks_like_artifact_table(table.table_name)
     )
+    duplicate_key_issue_count = count_duplicate_key_issues(tables)
+    duplicate_key_affected_rows = count_duplicate_key_affected_rows(tables)
 
     rows = [
         {
@@ -150,6 +153,30 @@ def build_migration_checklist_rows(tables: list[TableInfo], warnings: list[Warni
                 "Finding": "No cleanup candidates detected by current rules.",
                 "Recommended Action": "Continue normal application-owner review.",
                 "Related Sheet": "Cleanup Candidates",
+            }
+        )
+
+    if duplicate_key_issue_count:
+        rows.append(
+            {
+                "Area": "Duplicate key values",
+                "Status": "Fail",
+                "Finding": (
+                    f"{duplicate_key_issue_count} candidate/key columns contain duplicate values "
+                    f"affecting {duplicate_key_affected_rows} rows."
+                ),
+                "Recommended Action": "Clean duplicate values before creating unique keys or importing to MySQL.",
+                "Related Sheet": "Duplicate Key Values",
+            }
+        )
+    else:
+        rows.append(
+            {
+                "Area": "Duplicate key values",
+                "Status": "OK",
+                "Finding": "No duplicate values detected in candidate/key columns.",
+                "Recommended Action": "Continue normal key validation before production migration.",
+                "Related Sheet": "Duplicate Key Values",
             }
         )
 

@@ -1,4 +1,4 @@
-from legacydb_doctor.models import ColumnInfo, TableInfo, WarningInfo
+from legacydb_doctor.models import ColumnInfo, DuplicateKeyIssue, TableInfo, WarningInfo
 from legacydb_doctor.report_writer import build_report_frames
 
 
@@ -258,3 +258,72 @@ def test_build_report_frames_adds_convertability_columns_to_migration_plan():
     blocked_reason = df[df["Table"] == "BlockedTable"].iloc[0]["Convertability Reason"]
     assert "no detected primary key" in blocked_reason
 
+
+
+
+def test_build_report_frames_includes_duplicate_key_values_sheet():
+    tables = [
+        TableInfo(
+            table_name="LegacyUsers",
+            row_count=5,
+            columns=[col("LegacyUsers", "SifKorisnika")],
+            primary_keys=["SifKorisnika"],
+            primary_key_source="candidate",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="LegacyUsers",
+                    column_name="SifKorisnika",
+                    key_source="candidate",
+                    duplicate_value_count=2,
+                    affected_rows=5,
+                    sample_values=["101", "102"],
+                )
+            ],
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+
+    assert "Duplicate Key Values" in frames
+
+    df = frames["Duplicate Key Values"]
+
+    assert len(df) == 1
+    assert df.iloc[0]["Severity"] == "High"
+    assert df.iloc[0]["Table"] == "LegacyUsers"
+    assert df.iloc[0]["Column"] == "SifKorisnika"
+    assert df.iloc[0]["Key Source"] == "candidate"
+    assert df.iloc[0]["Duplicate Values"] == 2
+    assert df.iloc[0]["Affected Rows"] == 5
+    assert df.iloc[0]["Sample Values"] == "101, 102"
+
+
+def test_build_report_frames_migration_checklist_mentions_duplicate_key_values():
+    tables = [
+        TableInfo(
+            table_name="LegacyUsers",
+            row_count=5,
+            columns=[col("LegacyUsers", "SifKorisnika")],
+            primary_keys=["SifKorisnika"],
+            primary_key_source="candidate",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="LegacyUsers",
+                    column_name="SifKorisnika",
+                    key_source="candidate",
+                    duplicate_value_count=2,
+                    affected_rows=5,
+                    sample_values=["101", "102"],
+                )
+            ],
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+    df = frames["Migration Checklist"]
+
+    duplicate_row = df[df["Area"] == "Duplicate key values"].iloc[0]
+
+    assert duplicate_row["Status"] == "Fail"
+    assert "duplicate values" in duplicate_row["Finding"]
+    assert duplicate_row["Related Sheet"] == "Duplicate Key Values"

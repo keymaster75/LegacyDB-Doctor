@@ -7,6 +7,7 @@ from .access_reader import guess_potential_relationships, suggest_mysql_identifi
 from .readiness_score import calculate_migration_readiness_score
 from .models import TableInfo, WarningInfo
 from .convertability import evaluate_table_convertability
+from .duplicate_detector import count_duplicate_key_affected_rows, count_duplicate_key_issues
 
 
 def build_data_quality_rows(tables: list[TableInfo]) -> list[dict]:
@@ -76,6 +77,9 @@ def build_scan_summary(
         convertability = evaluate_table_convertability(table)
         convertability_counts[convertability.status] = convertability_counts.get(convertability.status, 0) + 1
 
+    duplicate_key_issue_count = count_duplicate_key_issues(tables)
+    duplicate_key_affected_rows = count_duplicate_key_affected_rows(tables)
+
     metadata_rows: list[dict[str, int | str]] = [
         {"Metric": "Scan timestamp", "Value": datetime.now().isoformat(timespec="seconds")}
     ]
@@ -106,6 +110,8 @@ def build_scan_summary(
         {"Metric": "Convertability review", "Value": convertability_counts["Review"]},
         {"Metric": "Convertability exclude", "Value": convertability_counts["Exclude"]},
         {"Metric": "Convertability blocked", "Value": convertability_counts["Blocked"]},
+        {"Metric": "Duplicate key issues", "Value": duplicate_key_issue_count},
+        {"Metric": "Duplicate key affected rows", "Value": duplicate_key_affected_rows},
         {"Metric": "PK formal", "Value": pk_formal_count},
         {"Metric": "PK unique_index", "Value": pk_unique_index_count},
         {"Metric": "PK candidate", "Value": pk_candidate_count},

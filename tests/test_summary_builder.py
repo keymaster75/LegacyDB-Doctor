@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from legacydb_doctor.models import ColumnInfo, TableInfo, WarningInfo
+from legacydb_doctor.models import ColumnInfo, DuplicateKeyIssue, TableInfo, WarningInfo
 from legacydb_doctor.summary_builder import build_scan_summary
 
 
@@ -227,3 +227,32 @@ def test_build_scan_summary_includes_convertability_counts():
     assert summary_dict["Convertability review"] == 1
     assert summary_dict["Convertability exclude"] == 1
     assert summary_dict["Convertability blocked"] == 1
+
+
+
+def test_build_scan_summary_includes_duplicate_key_counts():
+    tables = [
+        TableInfo(
+            table_name="LegacyUsers",
+            row_count=5,
+            columns=[make_column("LegacyUsers", "SifKorisnika")],
+            primary_keys=["SifKorisnika"],
+            primary_key_source="candidate",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="LegacyUsers",
+                    column_name="SifKorisnika",
+                    key_source="candidate",
+                    duplicate_value_count=2,
+                    affected_rows=5,
+                    sample_values=["101", "102"],
+                )
+            ],
+        )
+    ]
+
+    summary = build_scan_summary(tables, warnings=[])
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Duplicate key issues"] == 1
+    assert summary_dict["Duplicate key affected rows"] == 5

@@ -18,6 +18,19 @@ class ColumnInfo:
     fill_rate_percent: float | None = None
 
 
+
+@dataclass
+class DuplicateKeyIssue:
+    table_name: str
+    column_name: str
+    key_source: str
+    duplicate_value_count: int
+    affected_rows: int
+    sample_values: list[str] = field(default_factory=list)
+    severity: str = "High"
+    recommendation: str = "Review duplicate values before creating unique keys or importing to MySQL."
+
+
 @dataclass
 class TableInfo:
     table_name: str
@@ -25,6 +38,7 @@ class TableInfo:
     columns: list[ColumnInfo] = field(default_factory=list)
     primary_keys: list[str] = field(default_factory=list)
     primary_key_source: str = "none"
+    duplicate_key_issues: list[DuplicateKeyIssue] = field(default_factory=list)
 
 
 @dataclass

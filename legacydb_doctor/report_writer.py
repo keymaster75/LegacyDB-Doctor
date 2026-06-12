@@ -12,6 +12,7 @@ from .summary_builder import build_data_quality_rows, build_scan_summary
 from .readiness_score import calculate_migration_readiness_score
 from .migration_checklist import build_migration_checklist_rows
 from .convertability import evaluate_table_convertability
+from .duplicate_detector import build_duplicate_key_issue_rows
 
 def _autosize_worksheet(ws) -> None:
     for column_cells in ws.columns:
@@ -98,6 +99,23 @@ def build_report_frames(
     summary_df = pd.DataFrame(build_scan_summary(tables, warnings, database_path=database_path))
     readiness_factors_df = pd.DataFrame(build_readiness_factors_rows(tables, warnings))
     migration_checklist_df = pd.DataFrame(build_migration_checklist_rows(tables, warnings))
+    duplicate_key_values_df = pd.DataFrame(build_duplicate_key_issue_rows(tables))
+
+    if duplicate_key_values_df.empty:
+        duplicate_key_values_df = pd.DataFrame(
+            [
+                {
+                    "Severity": "info",
+                    "Table": None,
+                    "Column": None,
+                    "Key Source": None,
+                    "Duplicate Values": 0,
+                    "Affected Rows": 0,
+                    "Sample Values": None,
+                    "Recommendation": "No duplicate values detected in candidate/key columns.",
+                }
+            ]
+        )
 
     tables_df = pd.DataFrame(
         [
@@ -416,6 +434,7 @@ def build_report_frames(
         "Readiness Factors": readiness_factors_df,
         "Migration Checklist": migration_checklist_df,
         "Migration Plan": migration_plan_df,
+        "Duplicate Key Values": duplicate_key_values_df,
         "Tables": tables_df,
         "Primary Keys": primary_keys_df,
         "Potential Relationships": potential_relationships_df,

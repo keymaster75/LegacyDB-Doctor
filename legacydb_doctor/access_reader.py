@@ -8,7 +8,7 @@ import unicodedata
 
 import pyodbc
 
-from .models import ColumnInfo, PotentialRelationshipInfo, RelationshipInfo, TableInfo, WarningInfo
+from .models import ColumnInfo, DuplicateKeyIssue, PotentialRelationshipInfo, RelationshipInfo, TableInfo, WarningInfo
 from .mysql_mapper import map_access_type_to_mysql
 
 DEFAULT_ACCESS_DRIVER = "Microsoft Access Driver (*.mdb, *.accdb)"
@@ -583,6 +583,111 @@ def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
 
     return columns
 
+
+def format_duplicate_sample_value(value: object) -> str:
+    if value is None:
+        return "<NULL>"
+    return str(value)
+
+
+def count_duplicate_key_values(
+    cursor: pyodbc.Cursor,
+    table_name: str,
+    column_name: str,
+) -> tuple[int, int] | None:
+    table_sql = access_identifier(table_name)
+    column_sql = access_identifier(column_name)
+
+    sql = f"""
+        SELECT COUNT(*) AS duplicate_value_count, SUM(duplicate_row_count) AS affected_rows
+        FROM (
+            SELECT {column_sql}, COUNT(*) AS duplicate_row_count
+            FROM {table_sql}
+            GROUP BY {column_sql}
+            HAVING COUNT(*) > 1
+        ) AS duplicate_groups
+    """
+
+    try:
+        row = cursor.execute(sql).fetchone()
+    except pyodbc.Error:
+        return None
+
+    if not row or row[0] is None:
+        return (0, 0)
+
+    duplicate_value_count = int(row[0] or 0)
+    affected_rows = int(row[1] or 0)
+
+    return duplicate_value_count, affected_rows
+
+
+def get_duplicate_key_sample_values(
+    cursor: pyodbc.Cursor,
+    table_name: str,
+    column_name: str,
+    sample_limit: int = 5,
+) -> list[str]:
+    table_sql = access_identifier(table_name)
+    column_sql = access_identifier(column_name)
+
+    sql = f"""
+        SELECT TOP {sample_limit} {column_sql}, COUNT(*) AS duplicate_row_count
+        FROM {table_sql}
+        GROUP BY {column_sql}
+        HAVING COUNT(*) > 1
+        ORDER BY COUNT(*) DESC
+    """
+
+    try:
+        rows = cursor.execute(sql).fetchall()
+    except pyodbc.Error:
+        return []
+
+    return [format_duplicate_sample_value(row[0]) for row in rows]
+
+
+def detect_duplicate_key_issues(
+    conn: pyodbc.Connection,
+    table_name: str,
+    key_columns: list[str],
+    key_source: str,
+) -> list[DuplicateKeyIssue]:
+    if key_source not in {"candidate", "unique_index"}:
+        return []
+
+    issues: list[DuplicateKeyIssue] = []
+
+    for column_name in key_columns:
+        count_cursor = conn.cursor()
+        duplicate_counts = count_duplicate_key_values(count_cursor, table_name, column_name)
+        count_cursor.close()
+
+        if duplicate_counts is None:
+            continue
+
+        duplicate_value_count, affected_rows = duplicate_counts
+
+        if duplicate_value_count <= 0:
+            continue
+
+        sample_cursor = conn.cursor()
+        sample_values = get_duplicate_key_sample_values(sample_cursor, table_name, column_name)
+        sample_cursor.close()
+
+        issues.append(
+            DuplicateKeyIssue(
+                table_name=table_name,
+                column_name=column_name,
+                key_source=key_source,
+                duplicate_value_count=duplicate_value_count,
+                affected_rows=affected_rows,
+                sample_values=sample_values,
+            )
+        )
+
+    return issues
+
 def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACCESS_DRIVER) -> tuple[list[TableInfo], list[WarningInfo]]:
     warnings: list[WarningInfo] = []
     conn = connect_access(database_path, driver=driver)
@@ -677,15 +782,35 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                 if column_warning:
                     warnings.append(column_warning)
 
-            tables.append(
-                TableInfo(
-                    table_name=table_name,
-                    row_count=row_count,
-                    columns=columns,
-                    primary_keys=primary_keys,
-                    primary_key_source=primary_key_source,
-                )
+            table_info = TableInfo(
+                table_name=table_name,
+                row_count=row_count,
+                columns=columns,
+                primary_keys=primary_keys,
+                primary_key_source=primary_key_source,
             )
+
+            table_info.duplicate_key_issues = detect_duplicate_key_issues(
+                conn,
+                table_name=table_name,
+                key_columns=primary_keys,
+                key_source=primary_key_source,
+            )
+
+            if table_info.duplicate_key_issues:
+                warnings.append(
+                    WarningInfo(
+                        level="warning",
+                        table_name=table_name,
+                        column_name=None,
+                        message=(
+                            f"Duplicate values detected in candidate/key column(s): "
+                            f"{', '.join(issue.column_name for issue in table_info.duplicate_key_issues)}."
+                        ),
+                    )
+                )
+
+            tables.append(table_info)
 
         return tables, warnings
 
