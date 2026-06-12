@@ -59,6 +59,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Duplicate key issue counts in terminal and Excel Summary output.
 - `Duplicate Key Values` Excel report sheet with duplicate value counts, affected rows, sample values, and recommendations.
 - Duplicate value detection for candidate and unique-index key columns.
+- CLI `--duplicate-key-details` option for printing duplicate candidate/key value findings in the terminal.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -85,6 +86,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Improved terminal convertability details output for large databases by allowing row limiting.
 - Improved terminal convertability details output by allowing status-focused review.
 - Extended migration-readiness reporting with duplicate candidate/key value checks.
+- Extended summary-only scan workflow with optional terminal duplicate key details.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

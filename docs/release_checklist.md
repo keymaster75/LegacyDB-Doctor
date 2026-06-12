@@ -83,6 +83,18 @@ Expected:
 - table, column, row, warning, migration readiness score, migration readiness level, primary key, data-quality, and potential relationship metrics look reasonable
 - scan summary includes convertability counts for `Ready`, `Review`, `Exclude`, and `Blocked` tables
 
+Also test terminal duplicate key details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --duplicate-key-details
+```
+
+Expected:
+
+- normal scan summary is shown
+- duplicate key details are shown when duplicate candidate/key values are detected
+- if no duplicate candidate/key values are detected, a no-issues message is shown
+
 Also test terminal convertability details:
 
 ```powershell
@@ -389,6 +401,7 @@ Check that:
 - table convertability statuses are documented
 - convertability summary counts are documented
 - duplicate key value detection is documented
+- `--duplicate-key-details` usage is documented
 - CHANGELOG has an entry for the release checkpoint
 
 ---

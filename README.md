@@ -40,6 +40,7 @@ LegacyDB Doctor can currently:
   - unique index metadata
   - candidate key heuristics
 - detect duplicate values in candidate/unique key columns before migration
+- print duplicate candidate/key value details in the terminal with `--duplicate-key-details`
 - generate an Excel migration-readiness report
 - calculate a conservative Migration Readiness Score and readiness level
 - explain readiness score factors in the Excel `Readiness Factors` sheet
@@ -615,6 +616,8 @@ The terminal and Excel `Summary` output also include:
 
 The `Migration Checklist` sheet highlights duplicate key values as a migration blocker, because those values should be reviewed or cleaned before creating unique keys or importing into MySQL.
 
+For quick terminal review, the same duplicate key findings can be printed with `--duplicate-key-details` in `--summary-only` mode. This is useful when you want to quickly see the affected table, column, key source, duplicate value count, affected row count, and sample values without opening the Excel report.
+
 This avoids false positives in many-to-many tables such as book-author junction tables, where values like `BookId` and `AuthorId` are expected to repeat individually, while the combination may still be unique.
 
 
@@ -810,6 +813,12 @@ Run a quick scan and review the basic readiness score:
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only
+```
+
+Run a quick scan with terminal duplicate key details:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --duplicate-key-details
 ```
 
 Run a quick scan with terminal convertability details filtered to blocked tables:
