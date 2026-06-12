@@ -39,6 +39,7 @@ LegacyDB Doctor can currently:
   - formal primary key metadata
   - unique index metadata
   - candidate key heuristics
+- detect duplicate values in candidate/unique key columns before migration
 - generate an Excel migration-readiness report
 - calculate a conservative Migration Readiness Score and readiness level
 - explain readiness score factors in the Excel `Readiness Factors` sheet
@@ -82,6 +83,7 @@ The generated Excel report currently includes:
 | `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
 | `Migration Checklist` | High-level action checklist with area, status, finding, recommended action, and related sheet |
 | `Migration Plan` | Recommended action per table with convertability status, reason, migration recommendation, and suggested action |
+| `Duplicate Key Values` | Duplicate values found in candidate/unique key columns, with affected row counts and sample values |
 | `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
 | `Primary Keys` | Primary key / unique index / candidate status per table |
 | `Cleanup Candidates` | Tables that should be reviewed before migration |
@@ -121,6 +123,8 @@ LegacyDB Doctor scanning: C:\Mdb_test\Library.mdb
 │ Convertability review   │     8 │
 │ Convertability exclude  │     5 │
 │ Convertability blocked  │    10 │
+│ Duplicate key issues    │     2 │
+│ Duplicate key affected rows │ 12 │
 │ PK formal               │     0 │
 │ PK unique_index         │    17 │
 │ PK candidate            │     0 │
@@ -576,6 +580,40 @@ It does not pretend that a unique index is always a formal primary key.
 
 ---
 
+## Duplicate Key Value Detection
+
+When LegacyDB Doctor detects a `candidate` key or uses a `unique_index` as a key signal, it also checks whether duplicate values already exist in those key columns.
+
+This is important because duplicate values can break migration steps such as:
+
+- creating `UNIQUE KEY` constraints in MySQL
+- confirming candidate primary keys
+- building reliable foreign key relationships
+- importing data into a stricter target schema
+
+The Excel report includes a `Duplicate Key Values` sheet with:
+
+| Column | Meaning |
+|---|---|
+| `Severity` | Issue severity |
+| `Table` | Table containing the duplicate values |
+| `Column` | Candidate/key column with duplicate values |
+| `Key Source` | Whether the key came from `candidate` or `unique_index` detection |
+| `Duplicate Values` | Number of distinct duplicate values |
+| `Affected Rows` | Total rows involved in duplicate groups |
+| `Sample Values` | Example duplicate values for review |
+| `Recommendation` | Suggested migration preparation action |
+
+The terminal and Excel `Summary` output also include:
+
+| Metric | Meaning |
+|---|---|
+| `Duplicate key issues` | Number of candidate/key columns with duplicate values |
+| `Duplicate key affected rows` | Total rows affected by duplicate candidate/key values |
+
+The `Migration Checklist` sheet highlights duplicate key values as a migration blocker, because those values should be reviewed or cleaned before creating unique keys or importing into MySQL.
+
+
 ## Potential Relationships and FK Suggestions
 
 Many legacy Access databases do not expose reliable formal relationship metadata through ODBC.
@@ -683,6 +721,7 @@ legacydb-doctor/
     convertability.py
     csv_exporter.py
     csv_validator.py
+    duplicate_detector.py
     fk_suggestions_writer.py
     migration_checklist.py
     models.py
@@ -738,6 +777,14 @@ Run scan with normalized MySQL identifiers:
 ```powershell
 python -m legacydb_doctor scan "C:\Mdb_test\Library.mdb" --out "C:\Mdb_test\legacydb_report.xlsx" --schema-out "C:\Mdb_test\schema_recommended.sql" --use-recommended-names
 ```
+
+Run a full scan and review duplicate key value detection:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\duplicate_key_test" --use-recommended-names
+```
+
+The `Summary`, `Migration Checklist`, and `Duplicate Key Values` sheets should show duplicate candidate/key findings when duplicate values are detected.
 
 Run a full scan and review the Excel migration checklist:
 
@@ -824,7 +871,6 @@ Planned or possible future features:
 - tracked remediation workflow based on migration checklist
 - generate MySQL import scripts
 - direct Access-to-MySQL data migration
-- duplicate value detection for candidate key columns
 - optional reviewed foreign key DDL generation
 - improved Access index analysis
 - HTML report output

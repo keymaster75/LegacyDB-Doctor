@@ -156,6 +156,7 @@ Summary
 Readiness Factors
 Migration Checklist
 Migration Plan
+Duplicate Key Values
 Tables
 Primary Keys
 Potential Relationships
@@ -180,6 +181,9 @@ Confirm that:
 - `Summary` includes convertability counts for `Ready`, `Review`, `Exclude`, and `Blocked` tables
 - `Migration Plan` includes `Convertability Status` and `Convertability Reason` columns
 - convertability statuses include expected values such as `Ready`, `Review`, `Exclude`, and `Blocked`
+- `Migration Checklist` includes duplicate key value guidance
+- `Duplicate Key Values` contains duplicate candidate/key findings or a no-issues message
+- `Summary` includes duplicate key issue and duplicate key affected row counts
 
 Open the generated SQL and confirm:
 
@@ -384,6 +388,7 @@ Check that:
 - CSV export readiness guidance is documented
 - table convertability statuses are documented
 - convertability summary counts are documented
+- duplicate key value detection is documented
 - CHANGELOG has an entry for the release checkpoint
 
 ---
@@ -407,8 +412,8 @@ nothing to commit, working tree clean
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.21-dev -m "Convertability status filter checkpoint"
-git push origin v0.1.21-dev
+git tag -a v0.1.1-dev -m "Duplicate key value detection checkpoint"
+git push origin v0.1.1-dev
 ```
 
 Public release example:

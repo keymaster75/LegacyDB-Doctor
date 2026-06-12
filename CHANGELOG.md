@@ -55,6 +55,10 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - CLI `--convertability-details` option for printing table-level convertability details in the terminal.
 - CLI `--convertability-details-limit` option for limiting terminal convertability detail rows.
 - CLI `--convertability-status` option for filtering terminal convertability details by `Ready`, `Review`, `Exclude`, or `Blocked`.
+- Duplicate key value action row in the Excel `Migration Checklist` sheet.
+- Duplicate key issue counts in terminal and Excel Summary output.
+- `Duplicate Key Values` Excel report sheet with duplicate value counts, affected rows, sample values, and recommendations.
+- Duplicate value detection for candidate and unique-index key columns.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -80,6 +84,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended scan summary workflow with optional terminal table-level convertability details.
 - Improved terminal convertability details output for large databases by allowing row limiting.
 - Improved terminal convertability details output by allowing status-focused review.
+- Extended migration-readiness reporting with duplicate candidate/key value checks.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.
