@@ -582,7 +582,9 @@ It does not pretend that a unique index is always a formal primary key.
 
 ## Duplicate Key Value Detection
 
-When LegacyDB Doctor detects a `candidate` key or uses a `unique_index` as a key signal, it also checks whether duplicate values already exist in those key columns.
+When LegacyDB Doctor detects a `candidate` key or uses a single-column `unique_index` as a key signal, it also checks whether duplicate values already exist in those key columns.
+
+Composite unique indexes are treated as composite key signals. Their individual columns are not checked as if each column were unique on its own, because junction tables often legitimately repeat values in each individual FK-like column.
 
 This is important because duplicate values can break migration steps such as:
 
@@ -612,6 +614,8 @@ The terminal and Excel `Summary` output also include:
 | `Duplicate key affected rows` | Total rows affected by duplicate candidate/key values |
 
 The `Migration Checklist` sheet highlights duplicate key values as a migration blocker, because those values should be reviewed or cleaned before creating unique keys or importing into MySQL.
+
+This avoids false positives in many-to-many tables such as book-author junction tables, where values like `BookId` and `AuthorId` are expected to repeat individually, while the combination may still be unique.
 
 
 ## Potential Relationships and FK Suggestions
