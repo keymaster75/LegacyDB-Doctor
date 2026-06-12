@@ -17,6 +17,7 @@ from .sql_writer import write_schema_sql
 from .csv_validator import validate_csv_export
 from .readiness_score import calculate_migration_readiness_score
 from .convertability import evaluate_table_convertability
+from .duplicate_detector import build_duplicate_key_issue_rows
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -140,6 +141,55 @@ def build_convertability_details_table(
     return details
 
 
+def build_duplicate_key_detail_rows(tables) -> list[dict[str, str]]:
+    rows = []
+
+    for row in build_duplicate_key_issue_rows(tables):
+        rows.append(
+            {
+                "Table": str(row["Table"] or ""),
+                "Column": str(row["Column"] or ""),
+                "Key Source": str(row["Key Source"] or ""),
+                "Duplicate Values": str(row["Duplicate Values"] or 0),
+                "Affected Rows": str(row["Affected Rows"] or 0),
+                "Sample Values": str(row["Sample Values"] or ""),
+            }
+        )
+
+    return sorted(
+        rows,
+        key=lambda row: (
+            -int(row["Affected Rows"] or 0),
+            row["Table"].lower(),
+            row["Column"].lower(),
+        ),
+    )
+
+
+def build_duplicate_key_details_table(tables) -> Table:
+    details = Table(title="Duplicate key value details")
+    details.add_column("Table")
+    details.add_column("Column")
+    details.add_column("Key Source")
+    details.add_column("Duplicate Values", justify="right")
+    details.add_column("Affected Rows", justify="right")
+    details.add_column("Sample Values")
+
+    rows = build_duplicate_key_detail_rows(tables)
+
+    for row in rows:
+        details.add_row(
+            row["Table"],
+            row["Column"],
+            row["Key Source"],
+            row["Duplicate Values"],
+            row["Affected Rows"],
+            row["Sample Values"],
+        )
+
+    return details
+
+
 @app.command()
 def scan(
     database: Path = typer.Argument(..., help="Path to Access .mdb/.accdb database"),
@@ -185,6 +235,11 @@ def scan(
         False,
         "--readiness-details",
         help="Print migration readiness factor details in the terminal.",
+    ),
+    duplicate_key_details: bool = typer.Option(
+        False,
+        "--duplicate-key-details",
+        help="Print duplicate candidate/key value details in the terminal.",
     ),
     convertability_details: bool = typer.Option(
         False,
@@ -264,6 +319,14 @@ def scan(
 
     if readiness_details:
         console.print(build_readiness_details_table(tables, warnings))
+
+    if duplicate_key_details:
+        duplicate_key_rows = build_duplicate_key_detail_rows(tables)
+
+        if duplicate_key_rows:
+            console.print(build_duplicate_key_details_table(tables))
+        else:
+            console.print("[green]No duplicate values detected in candidate/key columns.[/green]")
 
     if convertability_details:
         convertability_rows = build_convertability_detail_rows(

@@ -1,7 +1,7 @@
 from typer.testing import CliRunner
 
-from legacydb_doctor.cli import app, build_convertability_detail_rows, build_convertability_details_table
-from legacydb_doctor.models import ColumnInfo, TableInfo
+from legacydb_doctor.cli import app, build_convertability_detail_rows, build_convertability_details_table, build_duplicate_key_detail_rows, build_duplicate_key_details_table
+from legacydb_doctor.models import ColumnInfo, DuplicateKeyIssue, TableInfo
 
 runner = CliRunner()
 
@@ -245,5 +245,87 @@ def test_build_convertability_details_table_applies_status_filter_and_limit():
     ]
 
     table = build_convertability_details_table(tables, limit=1, status_filter="Blocked")
+
+    assert len(table.rows) == 1
+
+
+
+def test_scan_help_includes_duplicate_key_details_option():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "duplicate" in result.output.lower()
+    assert "key" in result.output.lower()
+    assert "details" in result.output.lower()
+
+
+def test_build_duplicate_key_detail_rows_sorts_by_affected_rows_descending():
+    tables = [
+        TableInfo(
+            table_name="SmallIssue",
+            row_count=5,
+            columns=[col("SmallIssue", "Code")],
+            primary_keys=["Code"],
+            primary_key_source="candidate",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="SmallIssue",
+                    column_name="Code",
+                    key_source="candidate",
+                    duplicate_value_count=1,
+                    affected_rows=2,
+                    sample_values=["A"],
+                )
+            ],
+        ),
+        TableInfo(
+            table_name="LargeIssue",
+            row_count=20,
+            columns=[col("LargeIssue", "Code")],
+            primary_keys=["Code"],
+            primary_key_source="candidate",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="LargeIssue",
+                    column_name="Code",
+                    key_source="candidate",
+                    duplicate_value_count=3,
+                    affected_rows=10,
+                    sample_values=["X", "Y"],
+                )
+            ],
+        ),
+    ]
+
+    rows = build_duplicate_key_detail_rows(tables)
+
+    assert [row["Table"] for row in rows] == ["LargeIssue", "SmallIssue"]
+    assert rows[0]["Duplicate Values"] == "3"
+    assert rows[0]["Affected Rows"] == "10"
+    assert rows[0]["Sample Values"] == "X, Y"
+
+
+def test_build_duplicate_key_details_table_has_one_row_per_duplicate_issue():
+    tables = [
+        TableInfo(
+            table_name="LegacyUsers",
+            row_count=5,
+            columns=[col("LegacyUsers", "SifKorisnika")],
+            primary_keys=["SifKorisnika"],
+            primary_key_source="candidate",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="LegacyUsers",
+                    column_name="SifKorisnika",
+                    key_source="candidate",
+                    duplicate_value_count=2,
+                    affected_rows=5,
+                    sample_values=["101", "102"],
+                )
+            ],
+        )
+    ]
+
+    table = build_duplicate_key_details_table(tables)
 
     assert len(table.rows) == 1
