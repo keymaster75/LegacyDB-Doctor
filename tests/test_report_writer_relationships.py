@@ -327,3 +327,60 @@ def test_build_report_frames_migration_checklist_mentions_duplicate_key_values()
     assert duplicate_row["Status"] == "Fail"
     assert "duplicate values" in duplicate_row["Finding"]
     assert duplicate_row["Related Sheet"] == "Duplicate Key Values"
+
+
+
+def test_detect_duplicate_key_issues_skips_composite_unique_index_columns():
+    from legacydb_doctor.access_reader import detect_duplicate_key_issues
+
+    class FailingConnection:
+        def cursor(self):
+            raise AssertionError("Composite unique indexes must not be checked as individual duplicate columns.")
+
+    issues = detect_duplicate_key_issues(
+        FailingConnection(),
+        table_name="Je_Autor",
+        key_columns=["SifN", "SifA"],
+        key_source="unique_index",
+    )
+
+    assert issues == []
+
+
+def test_get_unique_index_columns_keeps_composite_index_grouped():
+    from legacydb_doctor.access_reader import get_unique_index_columns
+
+    class Row:
+        def __init__(self, index_name, column_name, ordinal_position):
+            self.index_name = index_name
+            self.column_name = column_name
+            self.ordinal_position = ordinal_position
+
+    class Cursor:
+        def statistics(self, table, unique=True):
+            return [
+                Row("ux_je_autor", "SifN", 1),
+                Row("ux_je_autor", "SifA", 2),
+            ]
+
+    assert get_unique_index_columns(Cursor(), "Je_Autor") == ["SifN", "SifA"]
+
+
+def test_get_unique_index_columns_prefers_single_column_index():
+    from legacydb_doctor.access_reader import get_unique_index_columns
+
+    class Row:
+        def __init__(self, index_name, column_name, ordinal_position):
+            self.index_name = index_name
+            self.column_name = column_name
+            self.ordinal_position = ordinal_position
+
+    class Cursor:
+        def statistics(self, table, unique=True):
+            return [
+                Row("ux_composite", "SifN", 1),
+                Row("ux_composite", "SifA", 2),
+                Row("ux_single", "InventarniBroj", 1),
+            ]
+
+    assert get_unique_index_columns(Cursor(), "Primerci") == ["InventarniBroj"]

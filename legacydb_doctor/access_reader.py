@@ -344,24 +344,63 @@ def get_primary_key_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]
     return primary_keys
 
 def get_unique_index_columns(cursor: pyodbc.Cursor, table_name: str) -> list[str]:
-    unique_columns: list[str] = []
+    """
+    Return columns from the best unique index candidate.
+
+    Important: Access/ODBC may expose composite unique indexes one column at a time.
+    A composite unique index such as (SifN, SifA) does NOT mean that SifN and SifA
+    are individually unique. We therefore group rows by index name and prefer a
+    single-column unique index when one exists. If only composite unique indexes
+    exist, we return the composite column list as a table-level key signal.
+    """
+    indexes: dict[str, list[tuple[int, str]]] = {}
 
     try:
         for row in cursor.statistics(table=table_name, unique=True):
             column_name = getattr(row, "column_name", None)
             index_name = getattr(row, "index_name", "") or ""
+            ordinal_position = getattr(row, "ordinal_position", None)
 
             if not column_name:
                 continue
 
             # Skip Access statistics rows that do not describe real columns.
-            if column_name not in unique_columns and not index_name.startswith("{"):
-                unique_columns.append(column_name)
+            if index_name.startswith("{"):
+                continue
+
+            if not index_name:
+                index_name = f"__unnamed_unique_{column_name}"
+
+            try:
+                position = int(ordinal_position) if ordinal_position is not None else 999
+            except (TypeError, ValueError):
+                position = 999
+
+            indexes.setdefault(index_name, []).append((position, column_name))
 
     except pyodbc.Error:
         return []
 
-    return unique_columns
+    if not indexes:
+        return []
+
+    normalized_indexes: list[list[str]] = []
+    for columns in indexes.values():
+        ordered_columns = [column_name for _, column_name in sorted(columns, key=lambda item: item[0])]
+        deduplicated_columns = list(dict.fromkeys(ordered_columns))
+        if deduplicated_columns:
+            normalized_indexes.append(deduplicated_columns)
+
+    if not normalized_indexes:
+        return []
+
+    single_column_indexes = [columns for columns in normalized_indexes if len(columns) == 1]
+    if single_column_indexes:
+        return single_column_indexes[0]
+
+    # Keep composite unique indexes as a useful table-level key signal.
+    # Duplicate checking must treat these as composite, not as separate unique columns.
+    return normalized_indexes[0]
 
 def get_relationships(cursor: pyodbc.Cursor, table_names: list[str]) -> list[RelationshipInfo]:
     relationships: list[RelationshipInfo] = []
@@ -654,6 +693,13 @@ def detect_duplicate_key_issues(
     key_source: str,
 ) -> list[DuplicateKeyIssue]:
     if key_source not in {"candidate", "unique_index"}:
+        return []
+
+    # A multi-column unique index is a composite key signal, not proof that each
+    # individual column is unique. Example: a junction table can be unique on
+    # (BookId, AuthorId), while both BookId and AuthorId legitimately repeat.
+    # Checking those columns separately would create false duplicate warnings.
+    if key_source == "unique_index" and len(key_columns) != 1:
         return []
 
     issues: list[DuplicateKeyIssue] = []
