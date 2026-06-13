@@ -60,6 +60,9 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - `Duplicate Key Values` Excel report sheet with duplicate value counts, affected rows, sample values, and recommendations.
 - Duplicate value detection for candidate and unique-index key columns.
 - CLI `--duplicate-key-details` option for printing duplicate candidate/key value findings in the terminal.
+- `mysql_import_writer.py` module with manifest-based import SQL generation.
+- CLI `generate-import-sql` command for creating `LOAD DATA LOCAL INFILE` scripts.
+- Review-only MySQL import SQL generator from CSV export manifests.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -87,6 +90,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Improved terminal convertability details output by allowing status-focused review.
 - Extended migration-readiness reporting with duplicate candidate/key value checks.
 - Extended summary-only scan workflow with optional terminal duplicate key details.
+- Extended CSV workflow from export and validation to review-only MySQL import script preparation.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

@@ -288,7 +288,33 @@ Warnings should be reviewed if present.
 
 ---
 
-## 11. Test limited CSV export
+## 11. Test MySQL import SQL generation
+
+Generate a review-only import script from a validated CSV export folder:
+
+```powershell
+legacydb-doctor generate-import-sql "C:\Mdb_test\release_csv" --out "C:\Mdb_test\release_csv\mysql_import.sql" --use-recommended-names
+```
+
+Expected file:
+
+```text
+C:\Mdb_test\release_csv\mysql_import.sql
+```
+
+Confirm that:
+
+- file starts with LegacyDB Doctor header comments
+- file contains `LOAD DATA LOCAL INFILE`
+- file contains `SET NAMES utf8mb4;`
+- table names are quoted with MySQL backticks
+- CSV paths use forward slashes
+- generated script is review-only and is not executed automatically
+- notes mention that target schema must already exist
+- notes mention that MySQL must allow `LOAD DATA LOCAL INFILE`
+
+
+## 12. Test limited CSV export
 
 ```powershell
 legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_csv_sample" --limit 5 --use-recommended-names
@@ -303,7 +329,7 @@ Expected:
 
 ---
 
-## 12. Test manifest-only CSV plan
+## 13. Test manifest-only CSV plan
 
 ```powershell
 legacydb-doctor export-csv "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\release_csv_plan" --manifest-only
@@ -318,7 +344,7 @@ Expected:
 
 ---
 
-## 13. Build the Python package
+## 14. Build the Python package
 
 Install build tooling if needed:
 
@@ -341,7 +367,7 @@ dist\legacydb_doctor-<version>-py3-none-any.whl
 
 ---
 
-## 14. Check Git safety
+## 15. Check Git safety
 
 Confirm that private databases or generated outputs are not tracked:
 
@@ -370,7 +396,7 @@ No output.
 
 ---
 
-## 15. Confirm documentation
+## 16. Confirm documentation
 
 Review:
 
@@ -402,11 +428,13 @@ Check that:
 - convertability summary counts are documented
 - duplicate key value detection is documented
 - `--duplicate-key-details` usage is documented
+- review-only MySQL import SQL assumptions and `LOAD DATA LOCAL INFILE` requirements are documented
+- `generate-import-sql` usage is documented
 - CHANGELOG has an entry for the release checkpoint
 
 ---
 
-## 16. Final clean status
+## 17. Final clean status
 
 ```powershell
 git status
@@ -420,12 +448,12 @@ nothing to commit, working tree clean
 
 ---
 
-## 17. Create release tag
+## 18. Create release tag
 
 Development checkpoint example:
 
 ```powershell
-git tag -a v0.1.1-dev -m "Duplicate key value detection checkpoint"
+git tag -a v0.1.13-dev -m "MySQL import SQL generator checkpoint"
 git push origin v0.1.1-dev
 ```
 
