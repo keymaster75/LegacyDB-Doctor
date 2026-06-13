@@ -329,3 +329,14 @@ def test_build_duplicate_key_details_table_has_one_row_per_duplicate_issue():
     table = build_duplicate_key_details_table(tables)
 
     assert len(table.rows) == 1
+
+
+
+def test_generate_import_sql_help_mentions_manifest_and_output():
+    result = runner.invoke(app, ["generate-import-sql", "--help"])
+
+    assert result.exit_code == 0
+    assert "import" in result.output.lower()
+    assert "sql" in result.output.lower()
+    assert "manifest" in result.output.lower()
+    assert "out" in result.output.lower()

@@ -18,6 +18,7 @@ from .csv_validator import validate_csv_export
 from .readiness_score import calculate_migration_readiness_score
 from .convertability import evaluate_table_convertability
 from .duplicate_detector import build_duplicate_key_issue_rows
+from .mysql_import_writer import write_mysql_import_sql
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -479,6 +480,34 @@ def validate_csv(
 
     if error_count:
         raise typer.Exit(code=1)
+
+
+@app.command("generate-import-sql")
+def generate_import_sql(
+    export_dir: Path = typer.Argument(..., help="Directory containing _export_manifest.csv and exported CSV files."),
+    out: Path = typer.Option(..., "--out", "-o", help="Output path for review-only MySQL LOAD DATA import script."),
+    use_recommended_names: bool = typer.Option(
+        False,
+        "--use-recommended-names",
+        help="Use normalized MySQL-safe table names in generated import statements.",
+    ),
+) -> None:
+    """Generate a review-only MySQL LOAD DATA import script from a CSV export manifest."""
+    console.print(f"[bold]LegacyDB Doctor[/bold] generating MySQL import SQL from: {export_dir}")
+
+    try:
+        import_sql_path = write_mysql_import_sql(
+            export_dir=export_dir,
+            output_path=out,
+            use_recommended_names=use_recommended_names,
+        )
+    except FileNotFoundError as exc:
+        console.print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"[green]MySQL import SQL created:[/green] {import_sql_path}")
+    console.print("[yellow]Review before running. The script uses LOAD DATA LOCAL INFILE.[/yellow]")
+
 
 @app.command("drivers")
 def list_drivers() -> None:
