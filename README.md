@@ -72,6 +72,7 @@ LegacyDB Doctor can currently:
 - validate CSV export folders against `_export_manifest.csv` with `validate-csv`
 - generate review-only MySQL `LOAD DATA LOCAL INFILE` import scripts from CSV export manifests
 - create CSV export dry-run plans with `--manifest-only`
+- documented synthetic English demo library scenario for public examples
 
 ---
 
@@ -778,6 +779,9 @@ legacydb-doctor/
     summary_builder.py
   tests/
   examples/
+    demo_library/
+      README.md
+      demo_data_plan.md
   docs/
     release_checklist.md
 ```
@@ -898,6 +902,15 @@ Run scan with review-only FK suggestion comments:
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --fk-suggestions-out "C:\Mdb_test\fk_summary_only.sql"
 ```
 
+Review the planned public demo library scenario:
+
+```powershell
+Get-Content .\examples\demo_library\README.md
+Get-Content .\examples\demo_library\demo_data_plan.md
+```
+
+The demo scenario is synthetic and uses English table and column names for a wider public audience.
+
 Typical commit workflow:
 
 ```powershell
@@ -933,7 +946,7 @@ Planned or possible future features:
 - optional reviewed foreign key DDL generation
 - improved Access index analysis
 - HTML report output
-- sample demo Access database
+- synthetic English demo Access database based on the documented demo library scenario
 - sample screenshots for documentation
 - GUI version
 - first public release tag `v0.1.0`

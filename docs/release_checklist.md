@@ -431,6 +431,8 @@ Check that:
 - review-only MySQL import SQL assumptions and `LOAD DATA LOCAL INFILE` requirements are documented
 - `generate-import-sql` usage is documented
 - CHANGELOG has an entry for the release checkpoint
+- demo library scenario documentation is present under `examples/demo_library/`
+- demo scenario uses synthetic English names and does not contain private data
 
 ---
 
@@ -454,7 +456,7 @@ Development checkpoint example:
 
 ```powershell
 git tag -a v0.1.13-dev -m "MySQL import SQL generator checkpoint"
-git push origin v0.1.1-dev
+git push origin v0.1.13-dev
 ```
 
 Public release example:

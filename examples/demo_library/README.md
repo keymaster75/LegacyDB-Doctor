@@ -1,0 +1,110 @@
+# Demo Library Scenario
+
+This folder documents a synthetic demo scenario for LegacyDB Doctor.
+
+The demo is inspired by common legacy school-library databases, but all names, tables, and data are synthetic and written in English for an international audience.
+
+The goal is to provide a safe public demo that can show the main migration-readiness checks without using any private or real-world database.
+
+---
+
+## Planned demo database
+
+Planned database file name:
+
+```text
+legacy_library_demo.mdb
+```
+
+The database should intentionally contain both clean and problematic legacy structures.
+
+| Table | Purpose | Expected LegacyDB Doctor result |
+|---|---|---|
+| `Author` | Clean lookup table with a clear key | `Ready` table, clean key signal |
+| `Book` | Main book table with a candidate key problem | duplicate key finding on `InventoryNumber` |
+| `Member` | Reader/member table without a reliable key | `Blocked` table because rows exist but no key is detected |
+| `BookAuthor` | Junction table between books and authors | composite unique key signal; no false duplicate warnings on individual columns |
+| `Member_ImportErrors` | Simulated Access import error table | cleanup candidate / likely `Exclude` |
+| `Book_OldBackup` | Simulated old backup/copy table | cleanup candidate / likely `Exclude` |
+
+---
+
+## What the demo should demonstrate
+
+The demo scenario is designed to exercise these LegacyDB Doctor features:
+
+- scan summary with metadata
+- Migration Readiness Score
+- `Readiness Factors` sheet
+- `Migration Checklist` sheet
+- table convertability statuses: `Ready`, `Blocked`, and `Exclude`
+- duplicate candidate/key value detection
+- `Duplicate Key Values` sheet
+- composite unique index handling for junction tables
+- cleanup candidate detection
+- data quality checks for empty and low-fill columns
+- potential relationship and FK suggestion review
+- CSV export and validation
+- review-only MySQL import SQL generation
+
+---
+
+## Expected demo workflow
+
+Run a summary-only scan:
+
+```powershell
+legacydb-doctor scan "examples\\demo_library\\legacy_library_demo.mdb" --summary-only --readiness-details --duplicate-key-details
+```
+
+Generate report and schema:
+
+```powershell
+legacydb-doctor scan "examples\\demo_library\\legacy_library_demo.mdb" --output-dir "examples\\demo_library\\out" --use-recommended-names
+```
+
+Review the generated Excel sheets:
+
+```text
+Summary
+Readiness Factors
+Migration Checklist
+Migration Plan
+Duplicate Key Values
+Cleanup Candidates
+Data Quality
+Potential Relationships
+FK Suggestions
+```
+
+Export CSV files:
+
+```powershell
+legacydb-doctor export-csv "examples\\demo_library\\legacy_library_demo.mdb" --output-dir "examples\\demo_library\\csv" --use-recommended-names
+```
+
+Validate CSV export:
+
+```powershell
+legacydb-doctor validate-csv "examples\\demo_library\\csv"
+```
+
+Generate review-only MySQL import SQL:
+
+```powershell
+legacydb-doctor generate-import-sql "examples\\demo_library\\csv" --out "examples\\demo_library\\csv\\mysql_import.sql" --use-recommended-names
+```
+
+---
+
+## Privacy and safety
+
+The demo database must not contain:
+
+- real student/member names
+- school production data
+- private addresses, emails, or phone numbers
+- real legacy application data
+- generated reports or SQL files committed by accident
+
+Only synthetic examples should be used.

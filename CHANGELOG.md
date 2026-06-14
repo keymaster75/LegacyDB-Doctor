@@ -63,6 +63,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - `mysql_import_writer.py` module with manifest-based import SQL generation.
 - CLI `generate-import-sql` command for creating `LOAD DATA LOCAL INFILE` scripts.
 - Review-only MySQL import SQL generator from CSV export manifests.
+- Synthetic English demo library scenario documentation under `examples/demo_library/`.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -91,6 +92,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended migration-readiness reporting with duplicate candidate/key value checks.
 - Extended summary-only scan workflow with optional terminal duplicate key details.
 - Extended CSV workflow from export and validation to review-only MySQL import script preparation.
+- Clarified public demo direction with English table and column names for wider audience.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.
