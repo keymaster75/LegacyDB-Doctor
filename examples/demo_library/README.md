@@ -143,12 +143,12 @@ LegacyDB Doctor scanning: examples\demo_library\legacy_library_demo.mdb
 
 Scan summary
 - Tables: 6
-- Migration readiness level: Medium or Low
-- Convertability ready: at least 1
-- Convertability exclude: at least 2
-- Convertability blocked: at least 1
-- Duplicate key issues: at least 1
-- Potential relationships: at least 2
+- Migration readiness level: Low
+- Convertability ready: 2
+- Convertability exclude: 2
+- Convertability blocked: 2
+- Duplicate key issues: 1
+- Duplicate key affected rows: 2
 ```
 
 ### Expected duplicate key details
@@ -158,10 +158,28 @@ The `Book` table should intentionally contain duplicate `InventoryNumber` values
 ```text
 Duplicate key value details
 Table  Column           Key Source  Duplicate Values  Affected Rows  Sample Values
-Book   InventoryNumber  candidate   1                 2              10012
+Book   InventoryNumber  candidate_like  1                 2              10012
 ```
 
-This demonstrates that LegacyDB Doctor does not blindly trust candidate keys.
+This demonstrates that LegacyDB Doctor can flag a column that looks like a business key but cannot safely become a unique key until duplicate values are reviewed.
+
+### Expected table convertability result
+
+The demo should produce this table-level pattern:
+
+```text
+Ready:
+- Author
+- BookAuthor
+
+Blocked:
+- Book
+- Member
+
+Exclude:
+- Book_OldBackup
+- Member_ImportErrors
+```
 
 ### Expected blocked table details
 

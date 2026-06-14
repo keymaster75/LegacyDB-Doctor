@@ -65,6 +65,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Review-only MySQL import SQL generator from CSV export manifests.
 - Synthetic English demo library scenario documentation under `examples/demo_library/`.
 - Expected demo output examples for the synthetic demo library scenario.
+- Duplicate detection for candidate-like business key columns.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -94,6 +95,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Extended summary-only scan workflow with optional terminal duplicate key details.
 - Extended CSV workflow from export and validation to review-only MySQL import script preparation.
 - Clarified public demo direction with English table and column names for wider audience.
+- Updated duplicate key documentation to explain `candidate_like` findings.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

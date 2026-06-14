@@ -74,7 +74,7 @@ InventoryNumber = 10012
 
 Expected result:
 
-- `InventoryNumber` detected as candidate/unique key signal depending on the final structure
+- `InventoryNumber` detected as a `candidate_like` business key issue because its name looks key-like but duplicate values exist
 - duplicate key issue detected
 - `Duplicate Key Values` sheet populated
 - `Migration Checklist` warns/fails duplicate key review
@@ -225,7 +225,7 @@ The final demo should produce a mixed report:
 | Ready table | `Author` |
 | Blocked table | `Member` |
 | Excluded cleanup tables | `Member_ImportErrors`, `Book_OldBackup` |
-| Duplicate key issue | `Book.InventoryNumber` |
+| Duplicate key issue | `Book.InventoryNumber` with key source `candidate_like` |
 | Composite key false-positive avoidance | `BookAuthor` |
 | Data quality issue | `Book.Subtitle`, `Book.Note` |
 | Relationship suggestions | `BookAuthor.BookID`, `BookAuthor.AuthorID` |
@@ -242,3 +242,21 @@ The helper script `create_demo_access_db.py` is intended to create and populate 
 The first generated version should be treated as a test artifact until it is scanned with LegacyDB Doctor and the actual output is compared with the expected findings in this document.
 
 If the actual scan result differs from the expected result, adjust the synthetic structure or this plan rather than using private real-world data.
+
+
+---
+
+## Actual validated demo result
+
+After running the generated demo database through LegacyDB Doctor, the intended duplicate finding is:
+
+```text
+Table: Book
+Column: InventoryNumber
+Key Source: candidate_like
+Duplicate Values: 1
+Affected Rows: 2
+Sample Values: 10012
+```
+
+This means the column name looks like a business key, but existing duplicate values must be reviewed or cleaned before it can be used as a unique key in MySQL.

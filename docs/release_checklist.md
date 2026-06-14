@@ -93,6 +93,7 @@ Expected:
 
 - normal scan summary is shown
 - duplicate key details are shown when duplicate candidate/key values are detected
+- duplicate details may include `candidate_like` findings for business-key-like columns with duplicates
 - if no duplicate candidate/key values are detected, a no-issues message is shown
 
 Also test terminal convertability details:
@@ -194,7 +195,7 @@ Confirm that:
 - `Migration Plan` includes `Convertability Status` and `Convertability Reason` columns
 - convertability statuses include expected values such as `Ready`, `Review`, `Exclude`, and `Blocked`
 - `Migration Checklist` includes duplicate key value guidance
-- `Duplicate Key Values` contains duplicate candidate/key findings or a no-issues message
+- `Duplicate Key Values` contains duplicate candidate/key, unique-index, or candidate-like findings, or a no-issues message
 - `Summary` includes duplicate key issue and duplicate key affected row counts
 
 Open the generated SQL and confirm:
@@ -345,6 +346,32 @@ Expected:
 
 ---
 
+---
+
+## Demo library smoke test
+
+Create and scan the synthetic demo library database:
+
+```powershell
+python examples\demo_library\create_demo_access_db.py --overwrite
+legacydb-doctor scan "examples\demo_library\legacy_library_demo.mdb" --summary-only --readiness-details --duplicate-key-details
+```
+
+Expected duplicate-key detail should include:
+
+```text
+Book | InventoryNumber | candidate_like | 1 | 2 | 10012
+```
+
+Also confirm that:
+
+- `Author` and `BookAuthor` are `Ready`
+- `Book` and `Member` are `Blocked`
+- `Member_ImportErrors` and `Book_OldBackup` are `Exclude`
+- the scan summary shows one duplicate key issue affecting two rows
+- no private data is present in the demo database
+
+
 ## 14. Build the Python package
 
 Install build tooling if needed:
@@ -428,6 +455,7 @@ Check that:
 - table convertability statuses are documented
 - convertability summary counts are documented
 - duplicate key value detection is documented
+- `candidate_like` duplicate findings are documented
 - `--duplicate-key-details` usage is documented
 - review-only MySQL import SQL assumptions and `LOAD DATA LOCAL INFILE` requirements are documented
 - `generate-import-sql` usage is documented

@@ -40,6 +40,7 @@ LegacyDB Doctor can currently:
   - unique index metadata
   - candidate key heuristics
 - detect duplicate values in candidate/unique key columns before migration
+- detect duplicate values in candidate-like business key columns such as inventory/code/number fields
 - print duplicate candidate/key value details in the terminal with `--duplicate-key-details`
 - generate an Excel migration-readiness report
 - calculate a conservative Migration Readiness Score and readiness level
@@ -87,7 +88,7 @@ The generated Excel report currently includes:
 | `Readiness Factors` | Explainable readiness score factors with impact, severity, message, and recommendation |
 | `Migration Checklist` | High-level action checklist with area, status, finding, recommended action, and related sheet |
 | `Migration Plan` | Recommended action per table with convertability status, reason, migration recommendation, and suggested action |
-| `Duplicate Key Values` | Duplicate values found in candidate/unique key columns, with affected row counts and sample values |
+| `Duplicate Key Values` | Duplicate values found in candidate, unique-index, or candidate-like business key columns, with affected row counts and sample values |
 | `Tables` | Table list, row counts, column counts, recommended MySQL names, PK status |
 | `Primary Keys` | Primary key / unique index / candidate status per table |
 | `Cleanup Candidates` | Tables that should be reviewed before migration |
@@ -184,7 +185,7 @@ The planned demo database is intentionally imperfect. It is designed to show how
 Expected demo findings include:
 
 - a clean `Author` table with `Ready` status
-- a `Book` table with duplicate `InventoryNumber` candidate-key values
+- a `Book` table with duplicate `InventoryNumber` candidate-like business key values
 - a `Member` table with rows but no reliable key, producing `Blocked` status
 - a `BookAuthor` junction table with a composite key signal and no false duplicate warnings on individual columns
 - `Member_ImportErrors` and `Book_OldBackup` cleanup candidates
@@ -650,6 +651,8 @@ It does not pretend that a unique index is always a formal primary key.
 
 When LegacyDB Doctor detects a `candidate` key or uses a single-column `unique_index` as a key signal, it also checks whether duplicate values already exist in those key columns.
 
+LegacyDB Doctor can also flag duplicate values in `candidate_like` business key columns. These are columns whose names look like practical legacy keys, such as inventory numbers, codes, or business numbers, but whose duplicate values prevent them from being treated as safe unique keys.
+
 Composite unique indexes are treated as composite key signals. Their individual columns are not checked as if each column were unique on its own, because junction tables often legitimately repeat values in each individual FK-like column.
 
 This is important because duplicate values can break migration steps such as:
@@ -658,6 +661,14 @@ This is important because duplicate values can break migration steps such as:
 - confirming candidate primary keys
 - building reliable foreign key relationships
 - importing data into a stricter target schema
+
+Key source values may include:
+
+| Key Source | Meaning |
+|---|---|
+| `unique_index` | Single-column unique index detected through Access/ODBC metadata |
+| `candidate` | Possible key detected by naming/type heuristics |
+| `candidate_like` | Column name looks like a business key, but duplicate values exist and must be reviewed before unique-key use |
 
 The Excel report includes a `Duplicate Key Values` sheet with:
 
@@ -926,6 +937,19 @@ Run scan with review-only FK suggestion comments:
 
 ```powershell
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --fk-suggestions-out "C:\Mdb_test\fk_summary_only.sql"
+```
+
+Run the synthetic demo library scan and review candidate-like duplicate detection:
+
+```powershell
+python examples\demo_library\create_demo_access_db.py --overwrite
+legacydb-doctor scan "examples\demo_library\legacy_library_demo.mdb" --summary-only --readiness-details --duplicate-key-details
+```
+
+Expected duplicate finding:
+
+```text
+Book | InventoryNumber | candidate_like | 1 | 2 | 10012
 ```
 
 Review the planned public demo library scenario:
