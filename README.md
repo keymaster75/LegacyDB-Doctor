@@ -73,6 +73,7 @@ LegacyDB Doctor can currently:
 - generate review-only MySQL `LOAD DATA LOCAL INFILE` import scripts from CSV export manifests
 - create CSV export dry-run plans with `--manifest-only`
 - documented synthetic English demo library scenario for public examples
+- documented expected demo output examples for screenshots and public README polish
 
 ---
 
@@ -167,6 +168,31 @@ LegacyDB Doctor validating CSV export: C:\Mdb_test\csv
 │ Checked items │    35 │
 └───────────────┴───────┘
 ```
+
+---
+
+## Demo Library Scenario
+
+A synthetic English demo scenario is documented under:
+
+```text
+examples/demo_library/
+```
+
+The planned demo database is intentionally imperfect. It is designed to show how LegacyDB Doctor explains migration risk instead of pretending that every legacy database is immediately ready.
+
+Expected demo findings include:
+
+- a clean `Author` table with `Ready` status
+- a `Book` table with duplicate `InventoryNumber` candidate-key values
+- a `Member` table with rows but no reliable key, producing `Blocked` status
+- a `BookAuthor` junction table with a composite key signal and no false duplicate warnings on individual columns
+- `Member_ImportErrors` and `Book_OldBackup` cleanup candidates
+- empty or low-fill columns for Data Quality checks
+- potential relationship and FK suggestion examples
+- CSV export, CSV validation, and review-only MySQL import SQL generation
+
+The demo uses synthetic data and English table/column names for a wider public audience.
 
 ---
 

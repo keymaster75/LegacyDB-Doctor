@@ -64,6 +64,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - CLI `generate-import-sql` command for creating `LOAD DATA LOCAL INFILE` scripts.
 - Review-only MySQL import SQL generator from CSV export manifests.
 - Synthetic English demo library scenario documentation under `examples/demo_library/`.
+- Expected demo output examples for the synthetic demo library scenario.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.

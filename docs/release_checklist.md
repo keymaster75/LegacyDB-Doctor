@@ -313,6 +313,7 @@ Confirm that:
 - notes mention that target schema must already exist
 - notes mention that MySQL must allow `LOAD DATA LOCAL INFILE`
 
+---
 
 ## 12. Test limited CSV export
 
@@ -433,6 +434,7 @@ Check that:
 - CHANGELOG has an entry for the release checkpoint
 - demo library scenario documentation is present under `examples/demo_library/`
 - demo scenario uses synthetic English names and does not contain private data
+- demo output examples are documented for future screenshots
 
 ---
 

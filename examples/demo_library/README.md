@@ -108,3 +108,78 @@ The demo database must not contain:
 - generated reports or SQL files committed by accident
 
 Only synthetic examples should be used.
+
+---
+
+## Demo output examples
+
+The demo scenario should eventually include screenshots or copied terminal output that show what LegacyDB Doctor reports for this intentionally imperfect database.
+
+Until the actual `.mdb` file is created, the examples below describe the expected output shape.
+
+### Expected scan summary highlights
+
+A completed scan should show a mixed result, not a perfect score:
+
+```text
+LegacyDB Doctor scanning: examples\demo_library\legacy_library_demo.mdb
+
+Scan summary
+- Tables: 6
+- Migration readiness level: Medium or Low
+- Convertability ready: at least 1
+- Convertability exclude: at least 2
+- Convertability blocked: at least 1
+- Duplicate key issues: at least 1
+- Potential relationships: at least 2
+```
+
+### Expected duplicate key details
+
+The `Book` table should intentionally contain duplicate `InventoryNumber` values:
+
+```text
+Duplicate key value details
+Table  Column           Key Source  Duplicate Values  Affected Rows  Sample Values
+Book   InventoryNumber  candidate   1                 2              10012
+```
+
+This demonstrates that LegacyDB Doctor does not blindly trust candidate keys.
+
+### Expected blocked table details
+
+The `Member` table should contain rows but no reliable key:
+
+```text
+Table convertability details
+Table   Status   Reason
+Member  Blocked  Table has rows but no detected primary key, unique index, or candidate key.
+```
+
+This demonstrates why migration-readiness analysis is useful before creating a target MySQL schema.
+
+### Expected cleanup candidate findings
+
+The following tables should be flagged for cleanup review:
+
+```text
+Member_ImportErrors
+Book_OldBackup
+```
+
+These tables are intentionally included to demonstrate how old Access applications often accumulate import-error, copy, backup, or stale tables.
+
+### Expected report screenshots
+
+When the demo database is created, useful screenshots for README/GitHub should include:
+
+- terminal `Scan summary`
+- terminal `Duplicate key value details`
+- Excel `Migration Checklist`
+- Excel `Migration Plan`
+- Excel `Duplicate Key Values`
+- Excel `Cleanup Candidates`
+- Excel `Data Quality`
+
+Generated screenshots should not include private data.
+
