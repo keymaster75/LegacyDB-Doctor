@@ -195,6 +195,20 @@ Expected demo findings include:
 
 The demo uses synthetic data and English table/column names for a wider public audience.
 
+### Demo screenshots
+
+Terminal scan summary:
+
+![LegacyDB Doctor demo scan summary](docs/images/terminal_scan_summary.png)
+
+Candidate-like duplicate key finding:
+
+![LegacyDB Doctor duplicate key terminal output](docs/images/terminal_duplicate_key_details.png)
+
+Excel Duplicate Key Values sheet:
+
+![LegacyDB Doctor Excel duplicate key values sheet](docs/images/excel_duplicate_key_values.png)
+
 ---
 
 ## Installation
