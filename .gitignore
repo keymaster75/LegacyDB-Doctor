@@ -47,3 +47,7 @@ temp/
 
 # Editor backup files
 *~
+# Demo/generated outputs
+examples/demo_library/legacy_library_demo.mdb
+examples/demo_library/out/
+examples/demo_library/csv/
