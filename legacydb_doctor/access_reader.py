@@ -590,6 +590,68 @@ def guess_primary_key_candidates(columns: list[ColumnInfo]) -> list[str]:
 
     return candidates
 
+
+def is_candidate_like_key_column(column: ColumnInfo) -> bool:
+    """
+    Return True when a column name looks like a business key, even if duplicate
+    values prevent it from becoming a primary-key candidate.
+
+    This is intentionally narrower than general relationship detection. It is
+    meant to catch legacy identifiers such as inventory numbers, codes, and
+    short šifra/sif columns without flagging ordinary text columns.
+    """
+    column_name = column.column_name or ""
+    normalized = suggest_mysql_identifier(column_name)
+    type_name = (column.type_name or "").lower()
+
+    if not normalized:
+        return False
+
+    # Avoid broad false positives on descriptive text fields.
+    is_numeric_or_unknown = (
+        not type_name
+        or any(marker in type_name for marker in ["int", "long", "short", "byte", "counter", "number", "numeric", "decimal"])
+    )
+
+    if normalized in {"id", "pk", "key"}:
+        return True
+
+    if normalized.startswith("sif") and len(normalized) <= 8:
+        return True
+
+    if normalized.endswith("_id") or normalized.endswith("id"):
+        return is_numeric_or_unknown
+
+    key_like_markers = [
+        "inventory_number",
+        "inventarni_broj",
+        "catalog_number",
+        "member_number",
+        "card_number",
+        "document_number",
+        "serial_number",
+        "registration_number",
+    ]
+
+    if normalized in key_like_markers:
+        return True
+
+    if normalized.endswith("_code") or normalized == "code":
+        return is_numeric_or_unknown
+
+    if normalized.endswith("_number") and is_numeric_or_unknown:
+        return True
+
+    return False
+
+
+def guess_candidate_like_key_columns(columns: list[ColumnInfo]) -> list[str]:
+    return [
+        column.column_name
+        for column in columns
+        if is_candidate_like_key_column(column)
+    ]
+
 def get_columns(cursor: pyodbc.Cursor, table_name: str) -> list[ColumnInfo]:
     columns: list[ColumnInfo] = []
 
@@ -734,6 +796,61 @@ def detect_duplicate_key_issues(
 
     return issues
 
+def detect_candidate_like_duplicate_issues(
+    conn: pyodbc.Connection,
+    table_name: str,
+    columns: list[ColumnInfo],
+    already_checked_columns: list[str] | None = None,
+) -> list[DuplicateKeyIssue]:
+    """
+    Detect duplicate values in key-like columns that did not qualify as keys.
+
+    Example: InventoryNumber looks like a migration key, but duplicate values
+    prevent it from being safe as a unique identifier. This finding is reported
+    as candidate_like rather than candidate, so users can review it without the
+    tool pretending it is a valid key.
+    """
+    checked = {column.lower() for column in (already_checked_columns or [])}
+    issues: list[DuplicateKeyIssue] = []
+
+    for column_name in guess_candidate_like_key_columns(columns):
+        if column_name.lower() in checked:
+            continue
+
+        count_cursor = conn.cursor()
+        duplicate_counts = count_duplicate_key_values(count_cursor, table_name, column_name)
+        count_cursor.close()
+
+        if duplicate_counts is None:
+            continue
+
+        duplicate_value_count, affected_rows = duplicate_counts
+
+        if duplicate_value_count <= 0:
+            continue
+
+        sample_cursor = conn.cursor()
+        sample_values = get_duplicate_key_sample_values(sample_cursor, table_name, column_name)
+        sample_cursor.close()
+
+        issues.append(
+            DuplicateKeyIssue(
+                table_name=table_name,
+                column_name=column_name,
+                key_source="candidate_like",
+                duplicate_value_count=duplicate_value_count,
+                affected_rows=affected_rows,
+                sample_values=sample_values,
+                recommendation=(
+                    "Column name looks like a business key, but duplicate values exist. "
+                    "Review or clean values before using it as a unique key in MySQL."
+                ),
+            )
+        )
+
+    return issues
+
+
 def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACCESS_DRIVER) -> tuple[list[TableInfo], list[WarningInfo]]:
     warnings: list[WarningInfo] = []
     conn = connect_access(database_path, driver=driver)
@@ -841,6 +958,15 @@ def inspect_access_database(database_path: str | Path, driver: str = DEFAULT_ACC
                 table_name=table_name,
                 key_columns=primary_keys,
                 key_source=primary_key_source,
+            )
+
+            table_info.duplicate_key_issues.extend(
+                detect_candidate_like_duplicate_issues(
+                    conn,
+                    table_name=table_name,
+                    columns=columns,
+                    already_checked_columns=primary_keys,
+                )
             )
 
             if table_info.duplicate_key_issues:

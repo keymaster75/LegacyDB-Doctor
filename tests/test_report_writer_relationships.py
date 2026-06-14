@@ -384,3 +384,38 @@ def test_get_unique_index_columns_prefers_single_column_index():
             ]
 
     assert get_unique_index_columns(Cursor(), "Primerci") == ["InventarniBroj"]
+
+
+
+def test_build_report_frames_includes_candidate_like_duplicate_key_values():
+    tables = [
+        TableInfo(
+            table_name="Book",
+            row_count=6,
+            columns=[col("Book", "InventoryNumber")],
+            primary_keys=[],
+            primary_key_source="none",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="Book",
+                    column_name="InventoryNumber",
+                    key_source="candidate_like",
+                    duplicate_value_count=1,
+                    affected_rows=2,
+                    sample_values=["10012"],
+                    recommendation="Column name looks like a business key, but duplicate values exist.",
+                )
+            ],
+        )
+    ]
+
+    frames = build_report_frames(tables, warnings=[])
+    df = frames["Duplicate Key Values"]
+
+    assert len(df) == 1
+    assert df.iloc[0]["Table"] == "Book"
+    assert df.iloc[0]["Column"] == "InventoryNumber"
+    assert df.iloc[0]["Key Source"] == "candidate_like"
+    assert df.iloc[0]["Duplicate Values"] == 1
+    assert df.iloc[0]["Affected Rows"] == 2
+    assert df.iloc[0]["Sample Values"] == "10012"

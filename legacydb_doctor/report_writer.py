@@ -112,7 +112,7 @@ def build_report_frames(
                     "Duplicate Values": 0,
                     "Affected Rows": 0,
                     "Sample Values": None,
-                    "Recommendation": "No duplicate values detected in candidate/key columns.",
+                    "Recommendation": "No duplicate values detected in candidate/key-like columns.",
                 }
             ]
         )

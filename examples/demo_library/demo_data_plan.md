@@ -231,3 +231,14 @@ The final demo should produce a mixed report:
 | Relationship suggestions | `BookAuthor.BookID`, `BookAuthor.AuthorID` |
 
 The demo should be intentionally imperfect. Its purpose is to show that LegacyDB Doctor can explain legacy migration risk instead of silently pretending everything is ready.
+
+
+---
+
+## Implementation note
+
+The helper script `create_demo_access_db.py` is intended to create and populate this database on Windows.
+
+The first generated version should be treated as a test artifact until it is scanned with LegacyDB Doctor and the actual output is compared with the expected findings in this document.
+
+If the actual scan result differs from the expected result, adjust the synthetic structure or this plan rather than using private real-world data.

@@ -256,3 +256,32 @@ def test_build_scan_summary_includes_duplicate_key_counts():
 
     assert summary_dict["Duplicate key issues"] == 1
     assert summary_dict["Duplicate key affected rows"] == 5
+
+
+
+def test_build_scan_summary_counts_candidate_like_duplicate_key_issues():
+    tables = [
+        TableInfo(
+            table_name="Book",
+            row_count=6,
+            columns=[make_column("Book", "InventoryNumber")],
+            primary_keys=[],
+            primary_key_source="none",
+            duplicate_key_issues=[
+                DuplicateKeyIssue(
+                    table_name="Book",
+                    column_name="InventoryNumber",
+                    key_source="candidate_like",
+                    duplicate_value_count=1,
+                    affected_rows=2,
+                    sample_values=["10012"],
+                )
+            ],
+        )
+    ]
+
+    summary = build_scan_summary(tables, warnings=[])
+    summary_dict = {row["Metric"]: row["Value"] for row in summary}
+
+    assert summary_dict["Duplicate key issues"] == 1
+    assert summary_dict["Duplicate key affected rows"] == 2

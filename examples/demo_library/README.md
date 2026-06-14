@@ -49,6 +49,23 @@ The demo scenario is designed to exercise these LegacyDB Doctor features:
 
 ---
 
+## Create the demo database
+
+The planned demo can be created with the optional helper script:
+
+```powershell
+python examples\demo_library\create_demo_access_db.py --overwrite
+```
+
+Then scan it:
+
+```powershell
+legacydb-doctor scan "examples\demo_library\legacy_library_demo.mdb" --summary-only --readiness-details --duplicate-key-details
+```
+
+See [CREATE_DEMO_DATABASE.md](CREATE_DEMO_DATABASE.md) for details and fallback instructions.
+
+
 ## Expected demo workflow
 
 Run a summary-only scan:
