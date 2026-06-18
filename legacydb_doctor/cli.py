@@ -19,6 +19,7 @@ from .readiness_score import calculate_migration_readiness_score
 from .convertability import evaluate_table_convertability
 from .duplicate_detector import build_duplicate_key_issue_rows
 from .mysql_import_writer import write_mysql_import_sql
+from .json_writer import write_scan_json
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -215,6 +216,11 @@ def scan(
         "--fk-suggestions-out",
         help="Write review-only FK suggestions as SQL comments to the selected file. Works with normal scan and --summary-only.",
     ),
+    json_out: Optional[Path] = typer.Option(
+        None,
+        "--json-out",
+        help="Write structured JSON scan result to the selected file. Works with normal scan and --summary-only.",
+    ),
     no_schema: bool = typer.Option(
         False,
         "--no-schema",
@@ -224,7 +230,7 @@ def scan(
     summary_only: bool = typer.Option(
         False,
         "--summary-only",
-        help="Only print scan summary; skip Excel report and schema generation. Other explicit outputs, such as --fk-suggestions-out, are still created.",
+        help="Only print scan summary; skip Excel report and schema generation. Other explicit outputs, such as --fk-suggestions-out or --json-out, are still created.",
     ),
     driver: str = typer.Option(DEFAULT_ACCESS_DRIVER, "--driver", help="ODBC driver name"),
     use_recommended_names: bool = typer.Option(
@@ -308,6 +314,10 @@ def scan(
     if fk_suggestions_out is not None:
         fk_suggestions_path = write_fk_suggestions_sql(tables, fk_suggestions_out)
         console.print(f"[green]FK suggestions SQL comments created:[/green] {fk_suggestions_path}")
+
+    if json_out is not None:
+        json_path = write_scan_json(tables, warnings, json_out, database_path=database)
+        console.print(f"[green]JSON scan result created:[/green] {json_path}")
 
     summary = Table(title="Scan summary")
     summary.add_column("Metric")

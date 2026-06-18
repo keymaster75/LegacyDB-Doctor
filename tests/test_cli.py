@@ -250,6 +250,22 @@ def test_build_convertability_details_table_applies_status_filter_and_limit():
 
 
 
+def test_scan_help_includes_json_out_option():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "--json-out" in result.output
+    assert "json" in result.output.lower()
+
+
+def test_scan_help_mentions_summary_only_keeps_json_outputs():
+    result = runner.invoke(app, ["scan", "--help"])
+
+    assert result.exit_code == 0
+    assert "--summary-only" in result.output
+    assert "--json-out" in result.output
+
+
 def test_scan_help_includes_duplicate_key_details_option():
     result = runner.invoke(app, ["scan", "--help"])
 

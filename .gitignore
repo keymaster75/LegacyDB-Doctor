@@ -51,3 +51,7 @@ temp/
 examples/demo_library/legacy_library_demo.mdb
 examples/demo_library/out/
 examples/demo_library/csv/
+
+# Local JSON scan outputs
+examples/demo_library/*.json
+scan_result.json
