@@ -75,6 +75,7 @@ LegacyDB Doctor can currently:
 - create CSV export dry-run plans with `--manifest-only`
 - documented synthetic English demo library scenario for public examples
 - documented expected demo output examples for screenshots and public README polish
+- write structured JSON scan output with `--json-out`
 
 ---
 
@@ -340,6 +341,38 @@ Clan$_ImportErrors  -> clan_import_errors
 InventarniBroj      -> inventarni_broj
 DatumPro            -> datum_pro
 ```
+
+### Structured JSON scan output
+
+LegacyDB Doctor can also write a structured JSON scan result:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --json-out "C:\Mdb_test\scan_result.json"
+```
+
+The same option can be used with normal report generation:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --output-dir "C:\Mdb_test\out" --json-out "C:\Mdb_test\out\scan_result.json"
+```
+
+The JSON output includes:
+
+- database metadata
+- summary metrics
+- migration readiness score and factors
+- table details and columns
+- table convertability status and reason
+- warnings
+- data-quality findings
+- duplicate key findings
+- potential relationships
+- migration checklist rows
+
+This output is intended for future GUI, batch processing, comparison reports, HTML reports, and Pro/workflow layers.
+
+It does not replace the Excel migration-readiness report. It provides a machine-readable scan result for tools that should not depend on reading Excel files.
+
 
 ### Export review-only FK suggestions
 
@@ -820,6 +853,7 @@ legacydb-doctor/
     csv_validator.py
     duplicate_detector.py
     fk_suggestions_writer.py
+    json_writer.py
     migration_checklist.py
     models.py
     mysql_import_writer.py
@@ -946,6 +980,19 @@ legacydb-doctor generate-import-sql "C:\Mdb_test\csv" --out "C:\Mdb_test\csv\mys
 ```
 
 Review the generated SQL before running it manually in MySQL.
+
+Run a quick scan and write structured JSON output:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --json-out "C:\Mdb_test\scan_result.json"
+```
+
+For the synthetic demo database:
+
+```powershell
+python examples\demo_library\create_demo_access_db.py --overwrite
+legacydb-doctor scan "examples\demo_library\legacy_library_demo.mdb" --summary-only --json-out "examples\demo_library\scan_result.json"
+```
 
 Run scan with review-only FK suggestion comments:
 

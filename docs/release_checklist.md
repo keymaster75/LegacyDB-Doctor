@@ -134,6 +134,18 @@ Expected:
 - only `Blocked` rows are shown
 - output is limited when more rows exist than the requested limit
 
+Also test structured JSON output:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --json-out "C:\Mdb_test\release_scan_result.json"
+```
+
+Expected:
+
+- normal scan summary is shown
+- JSON file is created
+- JSON contains database metadata, summary, readiness, tables, warnings, data quality, duplicate key values, potential relationships, and migration checklist sections
+
 Also test terminal readiness factor details:
 
 ```powershell
@@ -372,7 +384,26 @@ Also confirm that:
 - no private data is present in the demo database
 
 
-## 14. Build the Python package
+---
+
+## 14. Test structured JSON scan output
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --json-out "C:\Mdb_test\release_scan_result.json"
+```
+
+Confirm that:
+
+- the JSON file is created
+- the root `format` value is `legacydb-doctor-scan-result`
+- `format_version` is present
+- `database`, `summary`, `readiness`, `tables`, `warnings`, `data_quality`, `duplicate_key_values`, `potential_relationships`, and `migration_checklist` sections are present
+- table records include `convertability_status` and `convertability_reason`
+- duplicate findings include `key_source`, duplicate value count, affected rows, and sample values
+- the JSON file is treated as a generated local output unless intentionally published as a sample
+
+
+## 15. Build the Python package
 
 Install build tooling if needed:
 
@@ -395,7 +426,7 @@ dist\legacydb_doctor-<version>-py3-none-any.whl
 
 ---
 
-## 15. Check Git safety
+## 16. Check Git safety
 
 Confirm that private databases or generated outputs are not tracked:
 
@@ -424,7 +455,7 @@ No output.
 
 ---
 
-## 16. Confirm documentation
+## 17. Confirm documentation
 
 Review:
 
@@ -443,6 +474,8 @@ Check that:
 - generated report sheet list matches the current Excel output
 - `--fk-suggestions-out` usage is documented and marked as review-only
 - `--fk-suggestions-out` summary-only behavior is documented
+- `--json-out` usage is documented
+- `--json-out` summary-only behavior is documented
 - Migration Readiness Score is documented as conservative and heuristic
 - `--readiness-details` usage is documented
 - `--convertability-details` usage is documented
@@ -466,7 +499,7 @@ Check that:
 
 ---
 
-## 17. Final clean status
+## 18. Final clean status
 
 ```powershell
 git status
@@ -480,7 +513,7 @@ nothing to commit, working tree clean
 
 ---
 
-## 18. Create release tag
+## 19. Create release tag
 
 Development checkpoint example:
 

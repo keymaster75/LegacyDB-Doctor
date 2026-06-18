@@ -46,6 +46,7 @@ The demo scenario is designed to exercise these LegacyDB Doctor features:
 - potential relationship and FK suggestion review
 - CSV export and validation
 - review-only MySQL import SQL generation
+- structured JSON scan output for future GUI, batch, comparison, HTML, and Pro/workflow layers
 
 ---
 
@@ -110,6 +111,12 @@ Generate review-only MySQL import SQL:
 
 ```powershell
 legacydb-doctor generate-import-sql "examples\\demo_library\\csv" --out "examples\\demo_library\\csv\\mysql_import.sql" --use-recommended-names
+```
+
+Generate structured JSON output:
+
+```powershell
+legacydb-doctor scan "examples\\demo_library\\legacy_library_demo.mdb" --summary-only --json-out "examples\\demo_library\\scan_result.json"
 ```
 
 ---
