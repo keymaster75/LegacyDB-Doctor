@@ -47,6 +47,7 @@ The demo scenario is designed to exercise these LegacyDB Doctor features:
 - CSV export and validation
 - review-only MySQL import SQL generation
 - structured JSON scan output for future GUI, batch, comparison, HTML, and Pro/workflow layers
+- simple standalone HTML report rendering from structured JSON output
 
 ---
 
@@ -117,6 +118,12 @@ Generate structured JSON output:
 
 ```powershell
 legacydb-doctor scan "examples\\demo_library\\legacy_library_demo.mdb" --summary-only --json-out "examples\\demo_library\\scan_result.json"
+```
+
+Render a simple HTML report from JSON:
+
+```powershell
+legacydb-doctor render-html "examples\\demo_library\\scan_result.json" --out "examples\\demo_library\\scan_report.html"
 ```
 
 ---
@@ -225,3 +232,17 @@ When the demo database is created, useful screenshots for README/GitHub should i
 
 Generated screenshots should not include private data.
 
+
+
+### Expected HTML report sections
+
+The generated HTML report should show:
+
+- database metadata
+- migration readiness score and level
+- summary metrics
+- table convertability status and reason
+- duplicate key findings, including the `Book.InventoryNumber` `candidate_like` example
+- warnings
+
+The HTML report is generated from `scan_result.json` and should be treated as a local output unless intentionally published as a documentation sample.

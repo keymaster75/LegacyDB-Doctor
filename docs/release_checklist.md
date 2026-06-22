@@ -146,6 +146,20 @@ Expected:
 - JSON file is created
 - JSON contains database metadata, summary, readiness, tables, warnings, data quality, duplicate key values, potential relationships, and migration checklist sections
 
+Also test simple HTML report rendering from structured JSON:
+
+```powershell
+legacydb-doctor render-html "C:\Mdb_test\release_scan_result.json" --out "C:\Mdb_test\release_scan_report.html"
+```
+
+Expected:
+
+- HTML file is created
+- report opens in a browser
+- database metadata is visible
+- migration readiness score and level are visible
+- summary metrics, table convertability, duplicate key findings, and warnings are visible
+
 Also test terminal readiness factor details:
 
 ```powershell
@@ -403,7 +417,31 @@ Confirm that:
 - the JSON file is treated as a generated local output unless intentionally published as a sample
 
 
-## 15. Build the Python package
+---
+
+## 15. Test HTML report rendering from JSON
+
+Create or reuse a structured JSON scan result:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --json-out "C:\Mdb_test\release_scan_result.json"
+legacydb-doctor render-html "C:\Mdb_test\release_scan_result.json" --out "C:\Mdb_test\release_scan_report.html"
+```
+
+Confirm that:
+
+- the HTML file is created
+- the file is standalone and can be opened in a browser
+- database name, file path, and scan timestamp are visible
+- migration readiness score and level are visible
+- summary metrics are visible
+- table convertability status and reason are visible
+- duplicate key findings are visible when present
+- warnings are visible when present
+- generated HTML is treated as a local output unless intentionally published as a documentation sample
+
+
+## 16. Build the Python package
 
 Install build tooling if needed:
 
@@ -426,7 +464,7 @@ dist\legacydb_doctor-<version>-py3-none-any.whl
 
 ---
 
-## 16. Check Git safety
+## 17. Check Git safety
 
 Confirm that private databases or generated outputs are not tracked:
 
@@ -455,7 +493,7 @@ No output.
 
 ---
 
-## 17. Confirm documentation
+## 18. Confirm documentation
 
 Review:
 
@@ -476,6 +514,8 @@ Check that:
 - `--fk-suggestions-out` summary-only behavior is documented
 - `--json-out` usage is documented
 - `--json-out` summary-only behavior is documented
+- `render-html` usage is documented
+- HTML report prototype is documented as generated from structured JSON output
 - Migration Readiness Score is documented as conservative and heuristic
 - `--readiness-details` usage is documented
 - `--convertability-details` usage is documented
@@ -499,7 +539,7 @@ Check that:
 
 ---
 
-## 18. Final clean status
+## 19. Final clean status
 
 ```powershell
 git status
@@ -513,7 +553,7 @@ nothing to commit, working tree clean
 
 ---
 
-## 19. Create release tag
+## 20. Create release tag
 
 Development checkpoint example:
 

@@ -67,6 +67,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Expected demo output examples for the synthetic demo library scenario.
 - Duplicate detection for candidate-like business key columns.
 - Structured JSON scan output with `--json-out`.
+- Simple standalone HTML report rendering from structured JSON output with `render-html`.
 
 ### Changed
 - Refactored scan summary generation into a shared summary builder.
@@ -98,6 +99,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Clarified public demo direction with English table and column names for wider audience.
 - Updated duplicate key documentation to explain `candidate_like` findings.
 - Extended scan workflow with machine-readable JSON output for future GUI, batch, comparison, HTML, and Pro/workflow layers.
+- Added a dependency-free HTML report prototype that renders database metadata, readiness, summary metrics, table convertability, duplicate key findings, and warnings from JSON.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

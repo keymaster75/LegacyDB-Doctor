@@ -76,6 +76,7 @@ LegacyDB Doctor can currently:
 - documented synthetic English demo library scenario for public examples
 - documented expected demo output examples for screenshots and public README polish
 - write structured JSON scan output with `--json-out`
+- render a simple standalone HTML report from structured JSON output with `render-html`
 
 ---
 
@@ -372,6 +373,33 @@ The JSON output includes:
 This output is intended for future GUI, batch processing, comparison reports, HTML reports, and Pro/workflow layers.
 
 It does not replace the Excel migration-readiness report. It provides a machine-readable scan result for tools that should not depend on reading Excel files.
+
+
+### Render a simple HTML report from JSON
+
+After creating structured JSON output, you can render a simple standalone HTML report:
+
+```powershell
+legacydb-doctor render-html "C:\Mdb_test\scan_result.json" --out "C:\Mdb_test\scan_report.html"
+```
+
+Typical workflow:
+
+```powershell
+legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --json-out "C:\Mdb_test\scan_result.json"
+legacydb-doctor render-html "C:\Mdb_test\scan_result.json" --out "C:\Mdb_test\scan_report.html"
+```
+
+The HTML report currently includes:
+
+- database metadata
+- migration readiness score and level
+- key summary metrics
+- table convertability status and reason
+- duplicate key findings
+- warnings
+
+This is an early public-core prototype. It is intentionally simple and dependency-free. It demonstrates how the structured JSON output can support future GUI, batch, comparison, HTML, and Pro/client-ready reporting layers.
 
 
 ### Export review-only FK suggestions
@@ -854,6 +882,7 @@ legacydb-doctor/
     duplicate_detector.py
     fk_suggestions_writer.py
     json_writer.py
+    html_report_writer.py
     migration_checklist.py
     models.py
     mysql_import_writer.py
@@ -1000,6 +1029,17 @@ Run scan with review-only FK suggestion comments:
 legacydb-doctor scan "C:\Mdb_test\Library.mdb" --summary-only --fk-suggestions-out "C:\Mdb_test\fk_summary_only.sql"
 ```
 
+Run the synthetic demo library scan and render a simple HTML report from JSON:
+
+```powershell
+python examples\demo_library\create_demo_access_db.py --overwrite
+legacydb-doctor scan "examples\demo_library\legacy_library_demo.mdb" --summary-only --json-out "examples\demo_library\scan_result.json"
+legacydb-doctor render-html "examples\demo_library\scan_result.json" --out "examples\demo_library\scan_report.html"
+Start-Process .\examples\demo_library\scan_report.html
+```
+
+Generated JSON and HTML files are local outputs and should not be committed unless intentionally added as documentation samples.
+
 Run the synthetic demo library scan and review candidate-like duplicate detection:
 
 ```powershell
@@ -1056,7 +1096,7 @@ Planned or possible future features:
 - direct Access-to-MySQL data migration
 - optional reviewed foreign key DDL generation
 - improved Access index analysis
-- HTML report output
+- improved HTML report output and report polish
 - synthetic English demo Access database based on the documented demo library scenario
 - sample screenshots for documentation
 - GUI version
