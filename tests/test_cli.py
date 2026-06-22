@@ -348,6 +348,16 @@ def test_build_duplicate_key_details_table_has_one_row_per_duplicate_issue():
 
 
 
+
+def test_render_html_help_mentions_json_and_output():
+    result = runner.invoke(app, ["render-html", "--help"])
+
+    assert result.exit_code == 0
+    assert "html" in result.output.lower()
+    assert "json" in result.output.lower()
+    assert "out" in result.output.lower()
+
+
 def test_generate_import_sql_help_mentions_manifest_and_output():
     result = runner.invoke(app, ["generate-import-sql", "--help"])
 

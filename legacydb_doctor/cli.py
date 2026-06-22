@@ -20,6 +20,7 @@ from .convertability import evaluate_table_convertability
 from .duplicate_detector import build_duplicate_key_issue_rows
 from .mysql_import_writer import write_mysql_import_sql
 from .json_writer import write_scan_json
+from .html_report_writer import render_html_report_from_json
 
 app = typer.Typer(help="LegacyDB Doctor - Access to MySQL migration readiness toolkit")
 console = Console()
@@ -517,6 +518,26 @@ def generate_import_sql(
 
     console.print(f"[green]MySQL import SQL created:[/green] {import_sql_path}")
     console.print("[yellow]Review before running. The script uses LOAD DATA LOCAL INFILE.[/yellow]")
+
+
+@app.command("render-html")
+def render_html(
+    json_file: Path = typer.Argument(..., help="Path to LegacyDB Doctor structured scan JSON file."),
+    out: Path = typer.Option(..., "--out", "-o", help="Output path for standalone HTML report."),
+) -> None:
+    """Render a simple standalone HTML report from a structured JSON scan result."""
+    console.print(f"[bold]LegacyDB Doctor[/bold] rendering HTML report from: {json_file}")
+
+    try:
+        html_path = render_html_report_from_json(json_file, out)
+    except FileNotFoundError as exc:
+        console.print(f"[bold red]Error:[/bold red] JSON file not found: {exc.filename}")
+        raise typer.Exit(code=1) from exc
+    except ValueError as exc:
+        console.print(f"[bold red]Error:[/bold red] Invalid JSON input: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"[green]HTML report created:[/green] {html_path}")
 
 
 @app.command("drivers")
