@@ -100,6 +100,7 @@ All notable changes to LegacyDB Doctor will be documented in this file.
 - Updated duplicate key documentation to explain `candidate_like` findings.
 - Extended scan workflow with machine-readable JSON output for future GUI, batch, comparison, HTML, and Pro/workflow layers.
 - Added a dependency-free HTML report prototype that renders database metadata, readiness, summary metrics, table convertability, duplicate key findings, and warnings from JSON.
+- Documented future roadmap direction for review-only target schema mapping and lookup / referential-integrity warnings.
 
 ### Fixed
 - Handled Access/ODBC metadata decoding errors during column inspection.

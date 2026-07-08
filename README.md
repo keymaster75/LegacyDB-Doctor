@@ -1087,20 +1087,71 @@ For a fuller release preparation workflow, see [docs/release_checklist.md](docs/
 
 Planned or possible future features:
 
+- HTML report polish and improved visual layout
+- JSON/HTML sample documentation and screenshots
 - configurable scoring profiles
 - configurable convertability rules
 - scan-to-scan readiness comparison
 - exportable readiness assessment reports
 - remediation plans based on readiness factors
 - tracked remediation workflow based on migration checklist
+- target schema description format for future mapping workflows
+- review-only source-to-target mapping draft generation
+- basic mapping suggestions between legacy Access fields and target database schemas
+- optional mapping export as JSON and Excel
+- lookup / referential-integrity warnings for FK-like legacy columns
+- detection of NULL, zero, and orphaned lookup values before migration
 - direct Access-to-MySQL data migration
 - optional reviewed foreign key DDL generation
 - improved Access index analysis
-- improved HTML report output and report polish
 - synthetic English demo Access database based on the documented demo library scenario
 - sample screenshots for documentation
 - GUI version
 - first public release tag `v0.1.0`
+
+### Future mapping and lookup-integrity direction
+
+Future versions may add review-only target mapping and lookup-integrity workflows.
+
+The mapping workflow would help users compare a scanned legacy Access database with a target schema and prepare a source-to-target mapping draft.
+
+Example concept:
+
+```powershell
+legacydb-doctor scan "legacy_library_demo.mdb" --summary-only --json-out "scan_result.json"
+
+legacydb-doctor suggest-mapping "scan_result.json" --target-schema "target_schema.json" --out "mapping_draft.xlsx"
+```
+
+A first mapping version could support:
+
+- loading a target schema description from JSON or CSV
+- comparing source Access tables and columns with target tables and columns
+- suggesting possible mappings using normalized names, simple synonyms, and type compatibility
+- exporting mapping drafts as JSON and Excel
+- keeping all suggestions review-only
+
+The lookup-integrity workflow would flag FK-like legacy columns with risky values such as `NULL`, zero, or values that do not exist in the related lookup table.
+
+Example risk pattern:
+
+```sql
+SELECT *
+FROM Naslov
+WHERE SifIzd IS NULL
+   OR SifIzd = 0;
+```
+
+and:
+
+```sql
+SELECT *
+FROM Naslov n
+LEFT JOIN Izdavac i ON n.SifIzd = i.SifIzd
+WHERE i.SifIzd IS NULL;
+```
+
+These features would remain aligned with the main goal of LegacyDB Doctor: understanding and planning legacy database modernization before any destructive migration step.
 
 ---
 

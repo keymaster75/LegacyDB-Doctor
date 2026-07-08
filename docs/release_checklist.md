@@ -536,6 +536,8 @@ Check that:
 - demo library scenario documentation is present under `examples/demo_library/`
 - demo scenario uses synthetic English names and does not contain private data
 - demo output examples are documented for future screenshots
+- roadmap includes future target schema mapping direction as review-only planning, not blind migration
+- roadmap includes future lookup / referential-integrity warnings for FK-like legacy columns
 
 ---
 
